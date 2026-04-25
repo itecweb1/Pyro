@@ -1,6 +1,6 @@
 import Link from "next/link"
-import { adminNav } from "@/lib/content"
 import { Container } from "@/components/container"
+import { AdminNav } from "@/components/admin/admin-nav"
 import { Toaster } from "@/components/ui/sonner"
 import { signOut } from "@/app/actions/auth"
 
@@ -48,17 +48,7 @@ export function AdminShell({
       <Container className="py-8 md:py-12">
         <div className="grid gap-8 lg:grid-cols-[240px_1fr]">
           <aside className="lg:sticky lg:top-28 lg:self-start">
-            <nav className="grid gap-1 border border-border bg-secondary/30 p-2">
-              {adminNav.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="px-4 py-3 text-[12px] uppercase tracking-[0.2em] text-foreground/75 transition-colors hover:bg-background hover:text-foreground"
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
+            <AdminNav />
           </aside>
           <main>{children}</main>
         </div>

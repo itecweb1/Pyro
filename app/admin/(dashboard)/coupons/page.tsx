@@ -99,7 +99,7 @@ function Input({
       <span className="label-eyebrow">{label}</span>
       <input
         {...props}
-        className="h-11 border border-border bg-background px-3 text-sm outline-none focus:border-foreground"
+        className="h-11 border border-border bg-background px-3 text-sm outline-none transition-colors focus:border-foreground focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:ring-offset-1 focus-visible:ring-offset-background"
       />
     </label>
   )

@@ -1,6 +1,6 @@
-import Link from "next/link"
 import { notFound } from "next/navigation"
 import { AdminSetupNotice } from "@/components/admin-empty-state"
+import { Breadcrumbs } from "@/components/admin/breadcrumbs"
 import { ConfirmDeleteForm } from "@/components/admin/confirm-delete-form"
 import { SubmitButton } from "@/components/admin/submit-button"
 import { deleteCategory, updateCategory } from "@/app/admin/actions"
@@ -23,19 +23,17 @@ export default async function AdminCategoryEditPage({
 
   return (
     <div className="space-y-8">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="label-eyebrow">Merchandising</p>
-          <h1 className="mt-3 font-serif text-[44px] leading-none tracking-tight md:text-[64px]">
-            Editer categorie.
-          </h1>
-        </div>
-        <Link
-          href="/admin/categories"
-          className="border border-border px-4 py-3 text-[11px] uppercase tracking-[0.22em] hover:bg-secondary"
-        >
-          Retour
-        </Link>
+      <header className="space-y-4">
+        <Breadcrumbs
+          items={[
+            { label: "Admin", href: "/admin" },
+            { label: "Catégories", href: "/admin/categories" },
+            { label: category?.name ?? "—" },
+          ]}
+        />
+        <h1 className="font-serif text-[44px] leading-none tracking-tight md:text-[64px]">
+          {category?.name ?? "Catégorie"}.
+        </h1>
       </header>
 
       {!configured && <AdminSetupNotice />}
@@ -121,7 +119,7 @@ function Input({
       <span className="label-eyebrow">{label}</span>
       <input
         {...props}
-        className="h-11 border border-border bg-background px-3 text-sm outline-none focus:border-foreground"
+        className="h-11 border border-border bg-background px-3 text-sm outline-none transition-colors focus:border-foreground focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:ring-offset-1 focus-visible:ring-offset-background"
       />
     </label>
   )
@@ -137,7 +135,7 @@ function Textarea({
       <textarea
         {...props}
         rows={4}
-        className="border border-border bg-background px-3 py-3 text-sm outline-none focus:border-foreground"
+        className="border border-border bg-background px-3 py-3 text-sm outline-none transition-colors focus:border-foreground focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:ring-offset-1 focus-visible:ring-offset-background"
       />
     </label>
   )

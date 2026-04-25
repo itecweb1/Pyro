@@ -4,15 +4,21 @@ Living document. Tracks current state of the storefront + admin and the prioriti
 
 ---
 
-## 0. Recently shipped (admin sprint, April 2026)
+## 0. Recently shipped (April 2026)
 
+### Phase 1 — Feature CRUD
 - **Sprint 1** — Category & Coupon edit/delete (edit pages + delete actions).
 - **Sprint 2** — Product edit page incl. image add/delete and variant stock add/update/delete; product list now has Editer + Supprimer.
 - **Sprint 3** — Order detail page with line items, totals, customer block, full shipping address, payment block (Stripe IDs + coupon), status update.
 - **Sprint 4** — Supabase Storage uploads. New SQL `scripts/005_storage.sql` creates `product-images`, `hero-banners`, `category-images` buckets. File picker added to product image add, hero banner create, category create + edit. URL fallback kept on every form.
 - **Sprint 5** — Hero banner edit page (replaces delete-only flow) and customer detail page with order history + role/profile edit (promote-to-admin via dropdown).
 
-The admin is feature-complete but **not yet ship-ready on UX** — see §1.5 below for the audit findings and sprint plan. The biggest remaining correctness item on the feature side is still the Stripe webhook (P0 #1).
+### Phase 2 — Admin UX
+- **UX Sprint A — Safety & feedback.** `<ConfirmDeleteForm>` (Radix dialog) on every delete; `<SubmitButton>` with `useFormStatus` loading state on every form; `<FormToast>` (`useActionState`) wrapping inline updates; Sonner toaster in admin shell; all destructive + inline-update server actions return `ActionResult` (`{ ok, error }`).
+- **UX Sprint B — Visual design system.** Semantic color tokens (success/warning/danger/info × 5 stops) in `globals.css`; `<StatusBadge>` mapping DB values to French labels with tinted bg + dot; `<Button>` with variants/sizes; `<Card>` with tones; `<EmptyState>`; `<KpiCard>`; dashboard refactored; status badges and lucide icons applied across every list/detail.
+- **UX Sprint C — Wayfinding & polish.** Active sidebar nav state via `usePathname()`; `<Breadcrumbs>` on every detail page (replaces "Retour" pattern); custom admin `not-found.tsx`; focus rings on all inputs; consistent danger styling everywhere.
+
+The admin is now both feature-complete AND ship-quality on UX through Sprint C. Remaining: list ergonomics (D), forms & microcopy (E), mobile responsive (F), density refinements (G), then Stripe webhook (P0-1).
 
 ---
 
@@ -53,31 +59,14 @@ A full design / usability / ergonomics audit found the admin is **visually consi
 
 Seven focused sprints. Each is small and shippable. Recommended order is **A → B → C → D → E → F → G**. Sprint A unlocks reusable patterns (toast, confirm dialog, loading state). Sprint B builds the visual primitives (badges, buttons, cards, icons) that C–G all reuse.
 
-### UX Sprint A — Safety & feedback *(tackle first)*
-The "I trust the admin" sprint. Without this, every other improvement still feels like the panel might silently break.
-- Confirmation dialogs for every destructive action (`<ConfirmDialog>` component, used by all `Supprimer` buttons)
-- Toast notifications via `sonner` (already a dep) — success and error
-- Server actions return `{ ok: true } | { ok: false, error }` instead of silent return
-- Loading state on submit buttons via `useFormStatus` / `useTransition` (disabled, "Enregistrement…" copy, spinner)
+### ~~UX Sprint A — Safety & feedback~~ ✅ shipped
+Delivered: `<ConfirmDeleteForm>` Radix dialog, `<SubmitButton>` with `useFormStatus`, `<FormToast>` wrapping inline updates, Sonner toaster in shell, all destructive + inline-update actions return `ActionResult`.
 
-### UX Sprint B — Visual design system *(foundation for the rest)*
-Pure visual work. No behavior changes. Builds the components everything else uses.
-- Color tokens in `globals.css`: `success`, `warning`, `danger`, `info` (50/100/600/700 stops). Restrained palette — earthy reds, muted greens; not Bootstrap-bright.
-- `<StatusBadge>` component with named variants (`pending`, `paid`, `shipped`, `delivered`, `cancelled`, `refunded`, `active`, `draft`, `sale`). Tinted backgrounds + dot prefix.
-- `<Button>` component with variants (`primary`, `secondary`, `tertiary`, `danger`) and sizes (`sm`, `md`). Replaces the per-page button class soup.
-- `<Card>` component with optional `tone="danger"` for danger zones; subtle hover elevation for clickable cards.
-- Icon pass with `lucide-react` (already installed): `Edit2` / `Trash2` / `ExternalLink` / `Plus` / `Save` / `ChevronRight` on every action button.
-- Dashboard KPI cards: big number + eyebrow label + secondary metric (no real analytics yet — that's P1-3).
-- `<EmptyState>` component with icon + heading + CTA.
-- Table polish: hover-row highlight, sticky header on long lists, `tabular-nums` consistently on numeric columns.
+### ~~UX Sprint B — Visual design system~~ ✅ shipped
+Delivered: semantic color tokens (success/warning/danger/info × 5 stops, OKLCH), `<StatusBadge>` (mapped to French labels), `<Button>`, `<Card>`, `<EmptyState>`, `<KpiCard>`. Dashboard rebuilt with KPI cards. Status badges + lucide icons applied across products / coupons / orders / customers / hero banners. Order detail status select uses French labels.
 
-### UX Sprint C — Wayfinding & polish
-Now that the visual primitives exist, fix navigation feel.
-- Active state on sidebar nav (highlight current page) using `usePathname()`
-- Focus ring (`focus:ring-2 ring-offset-2`) on every input + button (built into the new `<Button>` and `<Input>`)
-- Breadcrumbs on every detail page (`Admin › Produits › T-shirt noir`)
-- Custom admin `not-found.tsx` matching the design language
-- Audit and apply Sprint B's danger styling everywhere a delete button appears
+### ~~UX Sprint C — Wayfinding & polish~~ ✅ shipped
+Delivered: active sidebar nav via `usePathname()`, `<Breadcrumbs>` on 6 detail pages, custom admin `not-found.tsx`, focus rings on every Input/Textarea, consistent danger styling.
 
 ### UX Sprint D — List ergonomics
 Makes the admin scale past a few seed products.
@@ -208,22 +197,22 @@ Must land before any real launch.
 
 ## 3. Recommended order of work (revised April 2026)
 
-UX phase (§1.5) comes first — feature work doesn't matter if the panel feels unsafe or unprofessional.
+UX phase comes first — feature work doesn't matter if the panel feels unsafe or unprofessional.
 
-1. **UX Sprint A** — Safety & feedback (deletes need confirmation, every action needs a toast, no more silent failures).
-2. **UX Sprint B** — Visual design system (color tokens, status badges, button/card components, icons, empty state, KPI cards).
-3. **UX Sprint C** — Wayfinding & polish (active nav, focus rings, breadcrumbs, custom 404, danger styling everywhere).
-4. **UX Sprint D** — List ergonomics (pagination, search, sortable columns, status filter chips).
-5. **UX Sprint E** — Forms & microcopy.
-6. **UX Sprint F** — Mobile responsive.
-7. **UX Sprint G** — Density refinements.
+1. ~~UX Sprint A — Safety & feedback~~ ✅ shipped
+2. ~~UX Sprint B — Visual design system~~ ✅ shipped
+3. ~~UX Sprint C — Wayfinding & polish~~ ✅ shipped
+4. **UX Sprint D — List ergonomics** *(next up)* — pagination, search, sortable columns, status filter chips on `/admin/orders`.
+5. **UX Sprint E — Forms & microcopy** — verb consistency (Sprint B already localized statuses), image preview before upload, `type="date"` everywhere, number `min`/`step`.
+6. **UX Sprint F — Mobile responsive** — sidebar drawer, tables → cards under `md`.
+7. **UX Sprint G — Density refinements** — variant cards, time on order timestamps, smarter setup notice.
 8. **P0-1: Stripe webhook + order persistence** — only remaining correctness bug on the feature side.
 9. **P1-1: COD fulfillment workflow** — `confirmed` status step, internal notes, timestamps.
 10. **P1-2: Reviews moderation**.
 11. **P1-3: Real dashboard analytics**.
 12. P2 items as time allows.
 
-The Sprints 1–5 in §0 are the *previous* phase (feature CRUD) and stay there as a record of what shipped.
+The Sprints 1–5 (Phase 1 feature CRUD) and UX Sprints A–C in §0 are records of what shipped.
 
 ---
 

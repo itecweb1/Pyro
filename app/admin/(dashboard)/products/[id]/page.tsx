@@ -1,8 +1,9 @@
-import Link from "next/link"
 import { notFound } from "next/navigation"
 import { AdminSetupNotice } from "@/components/admin-empty-state"
+import { Breadcrumbs } from "@/components/admin/breadcrumbs"
 import { ConfirmDeleteForm } from "@/components/admin/confirm-delete-form"
 import { FormToast } from "@/components/admin/form-toast"
+import { StatusBadge } from "@/components/admin/status-badge"
 import { SubmitButton } from "@/components/admin/submit-button"
 import {
   addProductImage,
@@ -36,24 +37,26 @@ export default async function AdminProductEditPage({
 
   return (
     <div className="space-y-8">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="label-eyebrow">Catalogue</p>
-          <h1 className="mt-3 font-serif text-[44px] leading-none tracking-tight md:text-[64px]">
-            {product?.name ?? "Editer produit"}.
-          </h1>
-          {product && (
-            <p className="mt-2 text-sm text-smoke">
-              /{product.slug} · {formatPrice(product.price_cents, product.currency)}
-            </p>
-          )}
-        </div>
-        <Link
-          href="/admin/products"
-          className="border border-border px-4 py-3 text-[11px] uppercase tracking-[0.22em] hover:bg-secondary"
-        >
-          Retour
-        </Link>
+      <header className="space-y-4">
+        <Breadcrumbs
+          items={[
+            { label: "Admin", href: "/admin" },
+            { label: "Produits", href: "/admin/products" },
+            { label: product?.name ?? "—" },
+          ]}
+        />
+        <h1 className="font-serif text-[44px] leading-none tracking-tight md:text-[64px]">
+          {product?.name ?? "Produit"}.
+        </h1>
+        {product && (
+          <div className="flex flex-wrap items-center gap-3">
+            <StatusBadge status={product.is_active ? "active" : "draft"} />
+            <span className="text-sm text-smoke">
+              /{product.slug} ·{" "}
+              {formatPrice(product.price_cents, product.currency)}
+            </span>
+          </div>
+        )}
       </header>
 
       {!configured && <AdminSetupNotice />}
@@ -354,7 +357,7 @@ function Input({
       <span className="label-eyebrow">{label}</span>
       <input
         {...props}
-        className="h-11 border border-border bg-background px-3 text-sm outline-none focus:border-foreground"
+        className="h-11 border border-border bg-background px-3 text-sm outline-none transition-colors focus:border-foreground focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:ring-offset-1 focus-visible:ring-offset-background"
       />
     </label>
   )
@@ -370,7 +373,7 @@ function Textarea({
       <textarea
         {...props}
         rows={3}
-        className="border border-border bg-background px-3 py-3 text-sm outline-none focus:border-foreground"
+        className="border border-border bg-background px-3 py-3 text-sm outline-none transition-colors focus:border-foreground focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:ring-offset-1 focus-visible:ring-offset-background"
       />
     </label>
   )

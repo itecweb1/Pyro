@@ -158,30 +158,62 @@ See `scripts/001_schema.sql` for canonical definitions.
 
 ---
 
-## Design system (current state)
+## Design system
 
-### Tokens (in `globals.css`)
-- `foreground` (black-ish), `background` (white-ish), `smoke` (gray for secondary text), `border` (hairline)
-- No semantic colors yet (success/warning/danger/info) — UX Sprint B will add them
+### Tokens (in `app/globals.css`)
+- **Brand**: `foreground` (near-black), `background` (off-white), `smoke` (gray for secondary text), `border` (hairline), `graphite`, `chrome`, `bone` (OKLCH).
+- **Semantic** (Sprint B, OKLCH, deliberately muted): `success`, `warning`, `danger`, `info` — each with stops `50` / `100` / `200` / `600` / `700`.
+  Use `bg-success-50 text-success-700 border-success-200` for tinted callouts; `bg-success-600` for solid actions.
 
 ### Typography
-- `font-serif` = **Instrument Serif** (page H1s on storefront and admin)
-- `font-sans` (Archivo) = body
-- `.label-eyebrow` = uppercase, tracking-wide, small font-medium — used for section labels
+- `font-serif` = **Instrument Serif** (page H1s, dashboard KPI numbers).
+- `font-sans` (Archivo) = body.
+- `font-mono` = SKU codes, coupon codes, IDs.
+- `.label-eyebrow` = uppercase, tracking-wide, small font-medium — used for section labels and KPI eyebrows.
 
-### Buttons (current pattern, pre-Sprint B)
-- **Primary**: `bg-foreground px-5 py-3 text-[11px] uppercase tracking-[0.22em] text-background`
-- **Secondary**: `border border-border px-4 py-3 text-[11px] uppercase tracking-[0.22em] hover:bg-secondary`
-- **Tertiary / danger**: same as secondary but `text-smoke hover:text-foreground` — *not visually distinct enough; Sprint B will fix this with a `<Button variant="danger">` component*
+### Admin component library (`components/admin/`)
+Shared admin UI primitives. Always reuse these instead of one-off classes.
+
+| Component | What it does | Use when |
+|---|---|---|
+| `<SubmitButton>` (Sprint A) | `useFormStatus`-driven button with pending state | every form's primary submit |
+| `<ConfirmDeleteForm>` (Sprint A) | Radix dialog → server action via `useTransition`, toasts result, optional `redirectTo` | every "Supprimer" trigger |
+| `<FormToast>` (Sprint A) | `useActionState` wrapper that surfaces `ActionResult` as toast | inline updates that don't redirect (status, stock, toggle) |
+| `<StatusBadge>` (Sprint B) | Maps DB status keys (`pending`/`paid`/`shipped`/`active`/`cod`/etc.) to French labels + tinted bg + dot | anywhere a status appears |
+| `<Button>` (Sprint B) | Variants `primary`/`secondary`/`tertiary`/`danger` × sizes `sm`/`md` | use for new code; legacy inline button classes still exist on some pages |
+| `<Card>` (Sprint B) | Tones `default`/`danger`/`muted`, optional `interactive` hover lift | grouping content boxes |
+| `<EmptyState>` (Sprint B) | Icon + heading + body + optional CTA link | every list's "no items yet" state |
+| `<KpiCard>` (Sprint B) | Eyebrow + icon + tabular value + optional trend pill | dashboard tiles |
+| `<AdminNav>` (Sprint C) | Sidebar nav with active state via `usePathname()` | already mounted in `AdminShell` |
+| `<Breadcrumbs>` (Sprint C) | Crumb trail with `ChevronRight` separators | every detail page header |
+
+### Action result contract (Sprint A)
+Server actions in `app/admin/actions.ts` return:
+```ts
+type ActionResult =
+  | { ok: true; message?: string }
+  | { ok: false; error: string }
+```
+Wrappers (`<ConfirmDeleteForm>`, `<FormToast>`) read this and produce the right toast. New actions should follow the same shape.
+
+### Buttons (legacy + new)
+- **New code**: use `<Button>` from `components/admin/button.tsx`.
+- **Legacy** (still around in many places, fine as-is until Sprint G touches them):
+  - Primary: `bg-foreground px-5 py-3 text-[11px] uppercase tracking-[0.22em] text-background`
+  - Secondary: `border border-border px-4 py-3 text-[11px] uppercase tracking-[0.22em] hover:bg-secondary`
 
 ### Tables
-- Hairline borders, `p-4` cells, headers in `text-[11px] uppercase tracking-[0.18em] text-smoke`
-- No hover state, no zebra striping, no sticky header — Sprint B adds polish
+Headers in `text-[11px] uppercase tracking-[0.18em] text-smoke`. Sprint B added `transition-colors hover:bg-secondary/40` on rows. Numeric columns must use `tabular-nums`. Pagination + sticky header + sortable columns are Sprint D.
 
-### Forms
-- Inputs: `h-11 border border-border bg-background px-3 text-sm outline-none focus:border-foreground` (focus is subtle — Sprint C adds proper focus rings)
-- Labels styled with `.label-eyebrow`, wrapped around input
-- Stacked layout, `gap-4` between fields, `gap-8` between major form sections
+### Forms (post Sprint A + C)
+- Inputs: 9 admin pages still have inline `Input` / `Textarea` helpers. Pattern (post-Sprint C):
+  ```
+  h-11 border border-border bg-background px-3 text-sm outline-none transition-colors
+  focus:border-foreground focus-visible:ring-2 focus-visible:ring-foreground/30
+  focus-visible:ring-offset-1 focus-visible:ring-offset-background
+  ```
+- Labels styled with `.label-eyebrow`, wrapped around input.
+- Sprint E will consolidate these helpers into a shared `<Input>` / `<Textarea>` and standardize button verbs (`Créer …` / `Enregistrer` / `Ajouter` / `Supprimer`).
 
 ---
 

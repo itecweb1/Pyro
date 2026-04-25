@@ -1,7 +1,6 @@
-import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ChevronLeft } from "lucide-react"
 import { AdminSetupNotice } from "@/components/admin-empty-state"
+import { Breadcrumbs } from "@/components/admin/breadcrumbs"
 import { FormToast } from "@/components/admin/form-toast"
 import { StatusBadge } from "@/components/admin/status-badge"
 import { SubmitButton } from "@/components/admin/submit-button"
@@ -35,31 +34,28 @@ export default async function AdminOrderDetailPage({
 
   return (
     <div className="space-y-8">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="label-eyebrow">Operations</p>
-          <h1 className="mt-3 font-serif text-[44px] leading-none tracking-tight md:text-[64px]">
-            Commande #{order ? order.id.slice(0, 8) : "—"}.
-          </h1>
-          {order && (
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <StatusBadge status={order.status} size="md" />
-              {order.payment_method && (
-                <StatusBadge status={order.payment_method} size="md" />
-              )}
-              <span className="text-sm text-smoke">
-                · {formatDate(order.created_at)}
-              </span>
-            </div>
-          )}
-        </div>
-        <Link
-          href="/admin/orders"
-          className="inline-flex items-center gap-1.5 border border-border px-4 py-3 text-[11px] uppercase tracking-[0.22em] transition-colors hover:bg-secondary"
-        >
-          <ChevronLeft className="size-3.5" strokeWidth={1.5} />
-          Retour
-        </Link>
+      <header className="space-y-4">
+        <Breadcrumbs
+          items={[
+            { label: "Admin", href: "/admin" },
+            { label: "Commandes", href: "/admin/orders" },
+            { label: order ? `#${order.id.slice(0, 8)}` : "—" },
+          ]}
+        />
+        <h1 className="font-serif text-[44px] leading-none tracking-tight md:text-[64px]">
+          Commande #{order ? order.id.slice(0, 8) : "—"}.
+        </h1>
+        {order && (
+          <div className="flex flex-wrap items-center gap-2">
+            <StatusBadge status={order.status} size="md" />
+            {order.payment_method && (
+              <StatusBadge status={order.payment_method} size="md" />
+            )}
+            <span className="text-sm text-smoke">
+              · {formatDate(order.created_at)}
+            </span>
+          </div>
+        )}
       </header>
 
       {!configured && <AdminSetupNotice />}

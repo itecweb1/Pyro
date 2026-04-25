@@ -122,6 +122,13 @@ pnpm build
 
 ## Statut & feuille de route
 
-Le storefront public et le coeur du back office sont en place. Plusieurs flux critiques manquent encore (webhook Stripe, edition produit, detail commande, upload images).
+Le storefront public et le back office sont fonctionnels. La phase admin UX est en cours :
 
-Voir [`PLAN.md`](./PLAN.md) pour la liste priorisee (P0 / P1 / P2) et l'ordre de travail recommande.
+- ✅ Phase 1 (CRUD complet) — produits, catégories, coupons, commandes, clients, hero banners, upload Supabase Storage.
+- ✅ UX Sprint A (sécurité & feedback) — confirmations, toasts, états de chargement.
+- ✅ UX Sprint B (système visuel) — tokens sémantiques, badges statut, composants Button/Card/EmptyState/KpiCard.
+- ✅ UX Sprint C (orientation) — nav active, fil d'Ariane, 404 personnalisé, focus rings.
+- ⏳ Sprints D–G à venir (pagination/recherche, formulaires, mobile, densité).
+- ❌ Webhook Stripe (P0) — les paiements carte n'enregistrent pas encore d'ordres en base.
+
+Voir [`PLAN.md`](./PLAN.md) pour la liste priorisée et [`KB.md`](./KB.md) pour le système de design + conventions.

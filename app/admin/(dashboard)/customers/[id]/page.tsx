@@ -1,7 +1,9 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { AdminSetupNotice } from "@/components/admin-empty-state"
+import { Breadcrumbs } from "@/components/admin/breadcrumbs"
 import { FormToast } from "@/components/admin/form-toast"
+import { StatusBadge } from "@/components/admin/status-badge"
 import { SubmitButton } from "@/components/admin/submit-button"
 import { updateCustomerProfile } from "@/app/admin/actions"
 import { getAdminCustomerById } from "@/lib/admin"
@@ -24,29 +26,40 @@ export default async function AdminCustomerDetailPage({
 
   return (
     <div className="space-y-8">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="label-eyebrow">CRM</p>
-          <h1 className="mt-3 font-serif text-[44px] leading-none tracking-tight md:text-[64px]">
-            {customer
-              ? `${customer.first_name ?? ""} ${customer.last_name ?? ""}`.trim() ||
-                "Client Pyro"
-              : "Client"}
-            .
-          </h1>
-          {customer && (
-            <p className="mt-2 text-sm text-smoke">
-              Inscrit le {formatDate(customer.created_at)} ·{" "}
-              {customer.role === "admin" ? "Admin" : "Client"}
-            </p>
-          )}
-        </div>
-        <Link
-          href="/admin/customers"
-          className="border border-border px-4 py-3 text-[11px] uppercase tracking-[0.22em] hover:bg-secondary"
-        >
-          Retour
-        </Link>
+      <header className="space-y-4">
+        <Breadcrumbs
+          items={[
+            { label: "Admin", href: "/admin" },
+            { label: "Clients", href: "/admin/customers" },
+            {
+              label: customer
+                ? `${customer.first_name ?? ""} ${customer.last_name ?? ""}`.trim() ||
+                  "Client"
+                : "—",
+            },
+          ]}
+        />
+        <h1 className="font-serif text-[44px] leading-none tracking-tight md:text-[64px]">
+          {customer
+            ? `${customer.first_name ?? ""} ${customer.last_name ?? ""}`.trim() ||
+              "Client Pyro"
+            : "Client"}
+          .
+        </h1>
+        {customer && (
+          <div className="flex flex-wrap items-center gap-3">
+            {customer.role === "admin" ? (
+              <StatusBadge status="active" label="Admin" />
+            ) : (
+              <span className="text-[11px] uppercase tracking-[0.18em] text-smoke">
+                Client
+              </span>
+            )}
+            <span className="text-sm text-smoke">
+              · Inscrit le {formatDate(customer.created_at)}
+            </span>
+          </div>
+        )}
       </header>
 
       {!configured && <AdminSetupNotice />}
@@ -161,7 +174,7 @@ function Input({
       <span className="label-eyebrow">{label}</span>
       <input
         {...props}
-        className="h-11 border border-border bg-background px-3 text-sm outline-none focus:border-foreground"
+        className="h-11 border border-border bg-background px-3 text-sm outline-none transition-colors focus:border-foreground focus-visible:ring-2 focus-visible:ring-foreground/30 focus-visible:ring-offset-1 focus-visible:ring-offset-background"
       />
     </label>
   )
