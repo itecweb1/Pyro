@@ -1,5 +1,7 @@
 import Link from "next/link"
 import { AdminSetupNotice } from "@/components/admin-empty-state"
+import { ConfirmDeleteForm } from "@/components/admin/confirm-delete-form"
+import { SubmitButton } from "@/components/admin/submit-button"
 import { createProduct, deleteProduct } from "@/app/admin/actions"
 import { getAdminCategories, getAdminProducts } from "@/lib/admin"
 import { formatPrice } from "@/lib/format"
@@ -63,12 +65,7 @@ export default async function AdminProductsPage() {
                 Best seller / mise en avant
               </label>
             </div>
-            <button
-              type="submit"
-              className="bg-foreground px-5 py-3 text-[11px] uppercase tracking-[0.22em] text-background"
-            >
-              Creer le produit
-            </button>
+            <SubmitButton pendingLabel="Création…">Créer le produit</SubmitButton>
           </div>
         </form>
 
@@ -118,15 +115,12 @@ export default async function AdminProductsPage() {
                       >
                         Editer
                       </Link>
-                      <form action={deleteProduct}>
-                        <input type="hidden" name="id" value={product.id} />
-                        <button
-                          type="submit"
-                          className="border border-border px-3 py-2 text-[11px] uppercase tracking-[0.22em] text-smoke hover:text-foreground"
-                        >
-                          Supprimer
-                        </button>
-                      </form>
+                      <ConfirmDeleteForm
+                        action={deleteProduct}
+                        hidden={[{ name: "id", value: product.id }]}
+                        successMessage={`Produit "${product.name}" supprimé`}
+                        description={`Supprimer "${product.name}" ? Toutes ses images et variantes seront supprimées.`}
+                      />
                     </div>
                   </td>
                 </tr>

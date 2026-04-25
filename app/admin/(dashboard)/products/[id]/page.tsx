@@ -1,6 +1,9 @@
 import Link from "next/link"
-import { notFound, redirect } from "next/navigation"
+import { notFound } from "next/navigation"
 import { AdminSetupNotice } from "@/components/admin-empty-state"
+import { ConfirmDeleteForm } from "@/components/admin/confirm-delete-form"
+import { FormToast } from "@/components/admin/form-toast"
+import { SubmitButton } from "@/components/admin/submit-button"
 import {
   addProductImage,
   addProductVariant,
@@ -14,12 +17,6 @@ import { getAdminCategories, getAdminProductById } from "@/lib/admin"
 import { formatPrice } from "@/lib/format"
 
 export const metadata = { title: "Editer produit" }
-
-async function deleteProductAndRedirect(formData: FormData) {
-  "use server"
-  await deleteProduct(formData)
-  redirect("/admin/products")
-}
 
 export default async function AdminProductEditPage({
   params,
@@ -154,12 +151,7 @@ export default async function AdminProductEditPage({
                     Best seller / mise en avant
                   </label>
                 </div>
-                <button
-                  type="submit"
-                  className="bg-foreground px-5 py-3 text-[11px] uppercase tracking-[0.22em] text-background"
-                >
-                  Enregistrer
-                </button>
+                <SubmitButton>Enregistrer</SubmitButton>
               </div>
             </form>
 
@@ -170,22 +162,21 @@ export default async function AdminProductEditPage({
                   {product.id}
                 </p>
               </div>
-              <form
-                action={deleteProductAndRedirect}
-                className="border border-border p-5"
-              >
-                <input type="hidden" name="id" value={product.id} />
+              <div className="border border-border p-5">
                 <p className="label-eyebrow">Zone dangereuse</p>
-                <p className="mt-3 text-sm text-smoke">
+                <p className="mt-3 mb-4 text-sm text-smoke">
                   Supprime le produit, ses images et toutes ses variantes.
                 </p>
-                <button
-                  type="submit"
-                  className="mt-4 w-full border border-border px-4 py-3 text-[11px] uppercase tracking-[0.22em] text-smoke hover:text-foreground"
-                >
-                  Supprimer le produit
-                </button>
-              </form>
+                <ConfirmDeleteForm
+                  action={deleteProduct}
+                  hidden={[{ name: "id", value: product.id }]}
+                  successMessage={`Produit "${product.name}" supprimé`}
+                  description={`Supprimer définitivement "${product.name}" ainsi que toutes ses images et variantes ?`}
+                  triggerLabel="Supprimer le produit"
+                  size="block"
+                  redirectTo="/admin/products"
+                />
+              </div>
             </aside>
           </section>
 
@@ -216,20 +207,16 @@ export default async function AdminProductEditPage({
                   <p className="text-[11px] uppercase tracking-[0.18em] text-smoke">
                     Ordre {image.sort_order}
                   </p>
-                  <form action={deleteProductImage}>
-                    <input type="hidden" name="id" value={image.id} />
-                    <input
-                      type="hidden"
-                      name="product_id"
-                      value={product.id}
-                    />
-                    <button
-                      type="submit"
-                      className="border border-border px-4 py-3 text-[11px] uppercase tracking-[0.22em] text-smoke hover:text-foreground"
-                    >
-                      Supprimer
-                    </button>
-                  </form>
+                  <ConfirmDeleteForm
+                    action={deleteProductImage}
+                    hidden={[
+                      { name: "id", value: image.id },
+                      { name: "product_id", value: product.id },
+                    ]}
+                    successMessage="Image supprimée"
+                    description="Supprimer cette image du produit ?"
+                    iconOnly
+                  />
                 </li>
               ))}
               {product.images.length === 0 && (
@@ -264,12 +251,9 @@ export default async function AdminProductEditPage({
                 label="ou coller une URL externe"
                 placeholder="https://..."
               />
-              <button
-                type="submit"
-                className="justify-self-start bg-foreground px-5 py-3 text-[11px] uppercase tracking-[0.22em] text-background"
-              >
-                Ajouter
-              </button>
+              <div className="justify-self-start">
+                <SubmitButton pendingLabel="Ajout…">Ajouter</SubmitButton>
+              </div>
             </form>
           </section>
 
@@ -293,8 +277,9 @@ export default async function AdminProductEditPage({
                   <p className="break-all font-mono text-xs text-smoke">
                     {variant.sku ?? "—"}
                   </p>
-                  <form
+                  <FormToast
                     action={updateVariantStock}
+                    successMessage="Stock mis à jour"
                     className="flex items-center gap-2"
                   >
                     <input type="hidden" name="id" value={variant.id} />
@@ -310,30 +295,23 @@ export default async function AdminProductEditPage({
                       defaultValue={variant.stock}
                       className="h-11 w-24 border border-border bg-background px-3 text-sm"
                     />
-                    <button
-                      type="submit"
-                      className="border border-border px-3 py-3 text-[11px] uppercase tracking-[0.22em] hover:bg-secondary"
-                    >
+                    <SubmitButton variant="secondary" pendingLabel="…">
                       OK
-                    </button>
-                  </form>
+                    </SubmitButton>
+                  </FormToast>
                   <span className="text-[11px] uppercase tracking-[0.18em] text-smoke">
                     Stock
                   </span>
-                  <form action={deleteProductVariant}>
-                    <input type="hidden" name="id" value={variant.id} />
-                    <input
-                      type="hidden"
-                      name="product_id"
-                      value={product.id}
-                    />
-                    <button
-                      type="submit"
-                      className="border border-border px-3 py-3 text-[11px] uppercase tracking-[0.22em] text-smoke hover:text-foreground"
-                    >
-                      Supprimer
-                    </button>
-                  </form>
+                  <ConfirmDeleteForm
+                    action={deleteProductVariant}
+                    hidden={[
+                      { name: "id", value: variant.id },
+                      { name: "product_id", value: product.id },
+                    ]}
+                    successMessage="Variante supprimée"
+                    description={`Supprimer la variante ${variant.size ?? ""} ${variant.color ?? ""} ?`}
+                    iconOnly
+                  />
                 </li>
               ))}
               {product.variants.length === 0 && (
@@ -358,12 +336,7 @@ export default async function AdminProductEditPage({
                 inputMode="numeric"
                 defaultValue="0"
               />
-              <button
-                type="submit"
-                className="bg-foreground px-5 py-3 text-[11px] uppercase tracking-[0.22em] text-background"
-              >
-                Ajouter
-              </button>
+              <SubmitButton pendingLabel="Ajout…">Ajouter</SubmitButton>
             </form>
           </section>
         </>

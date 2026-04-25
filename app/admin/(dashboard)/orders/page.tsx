@@ -1,6 +1,8 @@
 import Link from "next/link"
 import { updateOrderStatus } from "@/app/admin/actions"
 import { AdminSetupNotice } from "@/components/admin-empty-state"
+import { FormToast } from "@/components/admin/form-toast"
+import { SubmitButton } from "@/components/admin/submit-button"
 import { getAdminOrders } from "@/lib/admin"
 import { formatDate, formatPrice } from "@/lib/format"
 
@@ -59,7 +61,11 @@ export default async function AdminOrdersPage() {
                   {formatPrice(order.total_cents, order.currency)}
                 </td>
                 <td className="p-4">
-                  <form action={updateOrderStatus} className="flex gap-2">
+                  <FormToast
+                    action={updateOrderStatus}
+                    successMessage="Statut mis à jour"
+                    className="flex gap-2"
+                  >
                     <input type="hidden" name="id" value={order.id} />
                     <select
                       name="status"
@@ -72,10 +78,14 @@ export default async function AdminOrdersPage() {
                         </option>
                       ))}
                     </select>
-                    <button className="border border-foreground px-3 text-[10px] uppercase tracking-[0.18em]">
+                    <SubmitButton
+                      variant="secondary"
+                      pendingLabel="…"
+                      className="!px-3 !py-0 !text-[10px]"
+                    >
                       OK
-                    </button>
-                  </form>
+                    </SubmitButton>
+                  </FormToast>
                 </td>
                 <td className="p-4 text-right">
                   <Link

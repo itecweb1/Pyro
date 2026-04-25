@@ -1,5 +1,8 @@
 import Link from "next/link"
 import { AdminSetupNotice } from "@/components/admin-empty-state"
+import { ConfirmDeleteForm } from "@/components/admin/confirm-delete-form"
+import { FormToast } from "@/components/admin/form-toast"
+import { SubmitButton } from "@/components/admin/submit-button"
 import {
   createHeroBanner,
   deleteHeroBanner,
@@ -79,12 +82,7 @@ export default async function AdminSettingsPage() {
                 </div>
               ))}
             </div>
-            <button
-              type="submit"
-              className="bg-foreground px-5 py-3 text-[11px] uppercase tracking-[0.22em] text-background"
-            >
-              Enregistrer la marque
-            </button>
+            <SubmitButton>Enregistrer la marque</SubmitButton>
           </div>
         </form>
 
@@ -117,12 +115,7 @@ export default async function AdminSettingsPage() {
               <input name="is_active" type="checkbox" defaultChecked />
               Activer cette banniere
             </label>
-            <button
-              type="submit"
-              className="bg-foreground px-5 py-3 text-[11px] uppercase tracking-[0.22em] text-background"
-            >
-              Ajouter la banniere
-            </button>
+            <SubmitButton pendingLabel="Ajout…">Ajouter la bannière</SubmitButton>
           </div>
         </form>
       </section>
@@ -160,30 +153,30 @@ export default async function AdminSettingsPage() {
                 Editer
               </Link>
 
-              <form action={toggleHeroBanner} className="flex">
+              <FormToast
+                action={toggleHeroBanner}
+                successMessage={
+                  banner.is_active ? "Bannière désactivée" : "Bannière activée"
+                }
+                className="flex"
+              >
                 <input type="hidden" name="id" value={banner.id} />
                 <input
                   type="hidden"
                   name="next_active"
                   value={banner.is_active ? "false" : "true"}
                 />
-                <button
-                  type="submit"
-                  className="border border-border px-4 py-3 text-[11px] uppercase tracking-[0.22em] hover:bg-secondary"
-                >
-                  {banner.is_active ? "Desactiver" : "Activer"}
-                </button>
-              </form>
+                <SubmitButton variant="secondary" pendingLabel="…">
+                  {banner.is_active ? "Désactiver" : "Activer"}
+                </SubmitButton>
+              </FormToast>
 
-              <form action={deleteHeroBanner} className="flex">
-                <input type="hidden" name="id" value={banner.id} />
-                <button
-                  type="submit"
-                  className="border border-border px-4 py-3 text-[11px] uppercase tracking-[0.22em] text-smoke hover:text-foreground"
-                >
-                  Supprimer
-                </button>
-              </form>
+              <ConfirmDeleteForm
+                action={deleteHeroBanner}
+                hidden={[{ name: "id", value: banner.id }]}
+                successMessage={`Bannière "${banner.title}" supprimée`}
+                description={`Supprimer la bannière "${banner.title}" ?`}
+              />
             </article>
           ))}
         </div>

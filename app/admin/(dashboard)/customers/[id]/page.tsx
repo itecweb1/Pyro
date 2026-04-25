@@ -1,6 +1,8 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { AdminSetupNotice } from "@/components/admin-empty-state"
+import { FormToast } from "@/components/admin/form-toast"
+import { SubmitButton } from "@/components/admin/submit-button"
 import { updateCustomerProfile } from "@/app/admin/actions"
 import { getAdminCustomerById } from "@/lib/admin"
 import { formatDate, formatPrice } from "@/lib/format"
@@ -94,8 +96,9 @@ export default async function AdminCustomerDetailPage({
           </div>
 
           <aside className="space-y-6">
-            <form
+            <FormToast
               action={updateCustomerProfile}
+              successMessage="Profil mis à jour"
               className="border border-border p-5"
             >
               <input type="hidden" name="id" value={customer.id} />
@@ -103,7 +106,7 @@ export default async function AdminCustomerDetailPage({
               <div className="mt-4 grid gap-4">
                 <Input
                   name="first_name"
-                  label="Prenom"
+                  label="Prénom"
                   defaultValue={customer.first_name ?? ""}
                 />
                 <Input
@@ -113,11 +116,11 @@ export default async function AdminCustomerDetailPage({
                 />
                 <Input
                   name="phone"
-                  label="Telephone"
+                  label="Téléphone"
                   defaultValue={customer.phone ?? ""}
                 />
                 <label className="grid gap-2">
-                  <span className="label-eyebrow">Role</span>
+                  <span className="label-eyebrow">Rôle</span>
                   <select
                     name="role"
                     defaultValue={customer.role ?? "customer"}
@@ -127,14 +130,9 @@ export default async function AdminCustomerDetailPage({
                     <option value="admin">Admin</option>
                   </select>
                 </label>
-                <button
-                  type="submit"
-                  className="bg-foreground px-5 py-3 text-[11px] uppercase tracking-[0.22em] text-background"
-                >
-                  Enregistrer
-                </button>
+                <SubmitButton>Enregistrer</SubmitButton>
               </div>
-            </form>
+            </FormToast>
 
             <section className="border border-border p-5">
               <p className="label-eyebrow">Compte</p>

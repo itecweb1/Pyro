@@ -1,16 +1,12 @@
 import Link from "next/link"
-import { notFound, redirect } from "next/navigation"
+import { notFound } from "next/navigation"
 import { AdminSetupNotice } from "@/components/admin-empty-state"
+import { ConfirmDeleteForm } from "@/components/admin/confirm-delete-form"
+import { SubmitButton } from "@/components/admin/submit-button"
 import { deleteCategory, updateCategory } from "@/app/admin/actions"
 import { getAdminCategoryById } from "@/lib/admin"
 
 export const metadata = { title: "Editer categorie" }
-
-async function deleteCategoryAndRedirect(formData: FormData) {
-  "use server"
-  await deleteCategory(formData)
-  redirect("/admin/categories")
-}
 
 export default async function AdminCategoryEditPage({
   params,
@@ -82,12 +78,7 @@ export default async function AdminCategoryEditPage({
                 label="Texte collection"
                 defaultValue={category.description ?? ""}
               />
-              <button
-                type="submit"
-                className="bg-foreground px-5 py-3 text-[11px] uppercase tracking-[0.22em] text-background"
-              >
-                Enregistrer
-              </button>
+              <SubmitButton>Enregistrer</SubmitButton>
             </div>
           </form>
 
@@ -98,23 +89,22 @@ export default async function AdminCategoryEditPage({
                 {category.id}
               </p>
             </div>
-            <form
-              action={deleteCategoryAndRedirect}
-              className="border border-border p-5"
-            >
-              <input type="hidden" name="id" value={category.id} />
+            <div className="border border-border p-5">
               <p className="label-eyebrow">Zone dangereuse</p>
-              <p className="mt-3 text-sm text-smoke">
-                La suppression libere les produits de cette categorie sans les
+              <p className="mt-3 mb-4 text-sm text-smoke">
+                La suppression libère les produits de cette catégorie sans les
                 supprimer.
               </p>
-              <button
-                type="submit"
-                className="mt-4 w-full border border-border px-4 py-3 text-[11px] uppercase tracking-[0.22em] text-smoke hover:text-foreground"
-              >
-                Supprimer la categorie
-              </button>
-            </form>
+              <ConfirmDeleteForm
+                action={deleteCategory}
+                hidden={[{ name: "id", value: category.id }]}
+                successMessage={`Catégorie "${category.name}" supprimée`}
+                description={`Supprimer définitivement la catégorie "${category.name}" ?`}
+                triggerLabel="Supprimer la catégorie"
+                size="block"
+                redirectTo="/admin/categories"
+              />
+            </div>
           </aside>
         </section>
       )}

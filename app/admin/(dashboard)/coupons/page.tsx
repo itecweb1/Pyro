@@ -1,6 +1,8 @@
 import Link from "next/link"
 import { createCoupon, deleteCoupon } from "@/app/admin/actions"
 import { AdminSetupNotice } from "@/components/admin-empty-state"
+import { ConfirmDeleteForm } from "@/components/admin/confirm-delete-form"
+import { SubmitButton } from "@/components/admin/submit-button"
 import { getAdminCoupons } from "@/lib/admin"
 
 export const metadata = { title: "Admin coupons" }
@@ -38,9 +40,7 @@ export default async function AdminCouponsPage() {
               <input name="is_active" type="checkbox" defaultChecked />
               Actif
             </label>
-            <button className="bg-foreground px-5 py-3 text-[11px] uppercase tracking-[0.22em] text-background">
-              Creer le coupon
-            </button>
+            <SubmitButton pendingLabel="Création…">Créer le coupon</SubmitButton>
           </div>
         </form>
 
@@ -63,15 +63,12 @@ export default async function AdminCouponsPage() {
               >
                 Editer
               </Link>
-              <form action={deleteCoupon}>
-                <input type="hidden" name="id" value={coupon.id} />
-                <button
-                  type="submit"
-                  className="w-full border border-border px-4 py-3 text-[11px] uppercase tracking-[0.22em] text-smoke hover:text-foreground"
-                >
-                  Supprimer
-                </button>
-              </form>
+              <ConfirmDeleteForm
+                action={deleteCoupon}
+                hidden={[{ name: "id", value: coupon.id }]}
+                successMessage={`Coupon ${coupon.code} supprimé`}
+                description={`Supprimer le coupon "${coupon.code}" ? L'historique des commandes utilisant ce code reste intact.`}
+              />
             </article>
           ))}
           {coupons.length === 0 && (

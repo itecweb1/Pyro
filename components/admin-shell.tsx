@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { adminNav } from "@/lib/content"
 import { Container } from "@/components/container"
+import { Toaster } from "@/components/ui/sonner"
 import { signOut } from "@/app/actions/auth"
 
 export function AdminShell({
@@ -62,6 +63,12 @@ export function AdminShell({
           <main>{children}</main>
         </div>
       </Container>
+      <Toaster
+        position="top-right"
+        richColors
+        closeButton
+        toastOptions={{ className: "font-sans" }}
+      />
     </div>
   )
 }

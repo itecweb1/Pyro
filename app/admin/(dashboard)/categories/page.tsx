@@ -1,5 +1,7 @@
 import Link from "next/link"
 import { AdminSetupNotice } from "@/components/admin-empty-state"
+import { ConfirmDeleteForm } from "@/components/admin/confirm-delete-form"
+import { SubmitButton } from "@/components/admin/submit-button"
 import { createCategory, deleteCategory } from "@/app/admin/actions"
 import { getAdminCategories } from "@/lib/admin"
 
@@ -36,9 +38,7 @@ export default async function AdminCategoriesPage() {
             </label>
             <Input name="image_url" label="ou URL externe" placeholder="https://..." />
             <Textarea name="description" label="Texte collection" />
-            <button className="bg-foreground px-5 py-3 text-[11px] uppercase tracking-[0.22em] text-background">
-              Creer
-            </button>
+            <SubmitButton pendingLabel="Création…">Créer</SubmitButton>
           </div>
         </form>
 
@@ -61,15 +61,12 @@ export default async function AdminCategoriesPage() {
               >
                 Editer
               </Link>
-              <form action={deleteCategory}>
-                <input type="hidden" name="id" value={category.id} />
-                <button
-                  type="submit"
-                  className="w-full border border-border px-4 py-3 text-[11px] uppercase tracking-[0.22em] text-smoke hover:text-foreground"
-                >
-                  Supprimer
-                </button>
-              </form>
+              <ConfirmDeleteForm
+                action={deleteCategory}
+                hidden={[{ name: "id", value: category.id }]}
+                successMessage={`Catégorie "${category.name}" supprimée`}
+                description={`Supprimer la catégorie "${category.name}" ? Les produits liés seront conservés (sans catégorie).`}
+              />
             </article>
           ))}
           {categories.length === 0 && (

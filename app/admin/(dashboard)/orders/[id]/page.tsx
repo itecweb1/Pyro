@@ -1,6 +1,8 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { AdminSetupNotice } from "@/components/admin-empty-state"
+import { FormToast } from "@/components/admin/form-toast"
+import { SubmitButton } from "@/components/admin/submit-button"
 import { updateOrderStatus } from "@/app/admin/actions"
 import { getAdminOrderById } from "@/lib/admin"
 import { formatDate, formatPrice } from "@/lib/format"
@@ -127,8 +129,9 @@ export default async function AdminOrderDetailPage({
 
             <section className="border border-border p-5 md:p-6">
               <h2 className="label-eyebrow">Mettre a jour le statut</h2>
-              <form
+              <FormToast
                 action={updateOrderStatus}
+                successMessage="Statut mis à jour"
                 className="mt-4 flex flex-wrap items-center gap-3"
               >
                 <input type="hidden" name="id" value={order.id} />
@@ -143,13 +146,8 @@ export default async function AdminOrderDetailPage({
                     </option>
                   ))}
                 </select>
-                <button
-                  type="submit"
-                  className="bg-foreground px-5 py-3 text-[11px] uppercase tracking-[0.22em] text-background"
-                >
-                  Enregistrer
-                </button>
-              </form>
+                <SubmitButton>Enregistrer</SubmitButton>
+              </FormToast>
             </section>
           </div>
 

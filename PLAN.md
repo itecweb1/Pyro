@@ -12,7 +12,100 @@ Living document. Tracks current state of the storefront + admin and the prioriti
 - **Sprint 4** — Supabase Storage uploads. New SQL `scripts/005_storage.sql` creates `product-images`, `hero-banners`, `category-images` buckets. File picker added to product image add, hero banner create, category create + edit. URL fallback kept on every form.
 - **Sprint 5** — Hero banner edit page (replaces delete-only flow) and customer detail page with order history + role/profile edit (promote-to-admin via dropdown).
 
-The admin still needs the items in §2 below; the biggest remaining correctness item is the Stripe webhook (P0 #1).
+The admin is feature-complete but **not yet ship-ready on UX** — see §1.5 below for the audit findings and sprint plan. The biggest remaining correctness item on the feature side is still the Stripe webhook (P0 #1).
+
+---
+
+## 1.5. Admin UX phase (April 2026 audit)
+
+A full design / usability / ergonomics audit found the admin is **visually consistent** and **feature-complete**, but has **5 blocking UX gaps** that prevent professional use:
+
+### Blocking issues
+1. **Destructive actions have no confirmation** — every delete is a one-click form submission. Accidentally clicking "Supprimer" permanently removes a product with no undo.
+2. **Silent form submissions** — actions revalidate without any toast, inline message, or success indicator. On slow networks, users click Submit twice.
+3. **No pagination** — orders cap at 50 (older orders invisible); products and customers are unbounded and would slow down the page at any real scale.
+4. **No search/filter** on any list — finding a specific product/order/customer means scrolling.
+5. **Tables overflow horizontally on mobile** — `min-w-[820px]` on tables means phone users scroll sideways to see actions.
+
+### Major issues (next tier)
+- No active state on sidebar nav — operators get lost
+- Delete buttons styled like normal secondary buttons (no red, no danger affordance)
+- Inconsistent button verbs (`Creer` / `Enregistrer` / `Ajouter`, plus risk of `Modifier` / `Sauvegarder` creeping in)
+- No image preview before upload — users submit blind
+- Date inputs mixed: create-coupon form uses text+placeholder, edit-coupon uses native `type="date"`
+- Number inputs lack `min`/`step` validation
+- No loading states or `useTransition` on buttons (no spinner, no disabled-while-submitting)
+- Focus rings invisible (only a 1px border change on `:focus`) — keyboard nav fails accessibility
+- Order/coupon status values shown as English keys (`pending`, `paid`) instead of French labels
+- Variant management cramped (6 columns on a row)
+
+### Minor / polish
+- Custom 404 missing for deleted entities (Next.js generic 404 breaks admin look)
+- Eyebrow text contrast may fail WCAG AA
+- Empty states say "Aucun produit." without a CTA to create one
+- No breadcrumbs on detail pages
+- Order timestamps show date only, not time
+- `AdminSetupNotice` is generic when several specific failure modes could be detected
+
+---
+
+## 2. UX Sprints (proposed)
+
+Seven focused sprints. Each is small and shippable. Recommended order is **A → B → C → D → E → F → G**. Sprint A unlocks reusable patterns (toast, confirm dialog, loading state). Sprint B builds the visual primitives (badges, buttons, cards, icons) that C–G all reuse.
+
+### UX Sprint A — Safety & feedback *(tackle first)*
+The "I trust the admin" sprint. Without this, every other improvement still feels like the panel might silently break.
+- Confirmation dialogs for every destructive action (`<ConfirmDialog>` component, used by all `Supprimer` buttons)
+- Toast notifications via `sonner` (already a dep) — success and error
+- Server actions return `{ ok: true } | { ok: false, error }` instead of silent return
+- Loading state on submit buttons via `useFormStatus` / `useTransition` (disabled, "Enregistrement…" copy, spinner)
+
+### UX Sprint B — Visual design system *(foundation for the rest)*
+Pure visual work. No behavior changes. Builds the components everything else uses.
+- Color tokens in `globals.css`: `success`, `warning`, `danger`, `info` (50/100/600/700 stops). Restrained palette — earthy reds, muted greens; not Bootstrap-bright.
+- `<StatusBadge>` component with named variants (`pending`, `paid`, `shipped`, `delivered`, `cancelled`, `refunded`, `active`, `draft`, `sale`). Tinted backgrounds + dot prefix.
+- `<Button>` component with variants (`primary`, `secondary`, `tertiary`, `danger`) and sizes (`sm`, `md`). Replaces the per-page button class soup.
+- `<Card>` component with optional `tone="danger"` for danger zones; subtle hover elevation for clickable cards.
+- Icon pass with `lucide-react` (already installed): `Edit2` / `Trash2` / `ExternalLink` / `Plus` / `Save` / `ChevronRight` on every action button.
+- Dashboard KPI cards: big number + eyebrow label + secondary metric (no real analytics yet — that's P1-3).
+- `<EmptyState>` component with icon + heading + CTA.
+- Table polish: hover-row highlight, sticky header on long lists, `tabular-nums` consistently on numeric columns.
+
+### UX Sprint C — Wayfinding & polish
+Now that the visual primitives exist, fix navigation feel.
+- Active state on sidebar nav (highlight current page) using `usePathname()`
+- Focus ring (`focus:ring-2 ring-offset-2`) on every input + button (built into the new `<Button>` and `<Input>`)
+- Breadcrumbs on every detail page (`Admin › Produits › T-shirt noir`)
+- Custom admin `not-found.tsx` matching the design language
+- Audit and apply Sprint B's danger styling everywhere a delete button appears
+
+### UX Sprint D — List ergonomics
+Makes the admin scale past a few seed products.
+- Server-side pagination on products / orders / customers (URL `?page=N`, prev/next)
+- Search bar on each list (debounced, server-side `ilike` on relevant fields)
+- Sortable column headers (URL `?sort=price&dir=desc`, click to toggle)
+- Better empty states using Sprint B's `<EmptyState>` ("Aucun produit. **Créer le premier produit →**")
+- Status filter chips on `/admin/orders` (Tous / En attente / Payé / Expédié / Livré / Annulé)
+
+### UX Sprint E — Forms & microcopy
+- Standardize button verbs project-wide: `Créer …` (insert), `Enregistrer` (update), `Ajouter` (append to list), `Supprimer` (destroy). Forbid `Sauvegarder` / `Modifier`.
+- Image preview before upload (FileReader thumbnail next to file input)
+- Date inputs everywhere become `type="date"` (fix `coupons/page.tsx` create form)
+- Number inputs get `min` / `step` (`min="0" step="0.01"` on prices, `min="0" step="1"` on stock and sort_order)
+- Localize order/coupon status to French in UI (keep DB values English): `{ pending: "En attente", paid: "Payé", … }`
+- Improve placeholders and labels for clarity (e.g. `Slug (URL)` → `Slug URL — laisser vide pour générer depuis le nom`)
+- Customer role select gets a warning helper text under it
+
+### UX Sprint F — Mobile responsive
+- Sidebar becomes a slide-in drawer on `< lg` (hamburger trigger in header)
+- Convert wide tables (products, orders) to stacked cards under `md` breakpoint
+- Touch-friendly sizing — bump button padding on mobile, ensure 48px min touch targets
+
+### UX Sprint G — Density refinements
+- Variant management: switch from 6-column row to expandable card per variant
+- Time included in order timestamps (`25 avril 14:32`)
+- Smarter `AdminSetupNotice` that detects and shows only the specific missing piece
+- Fix any remaining contrast misses found by a contrast pass
 
 ---
 
@@ -113,18 +206,24 @@ Must land before any real launch.
 
 ---
 
-## 3. Recommended order of work
+## 3. Recommended order of work (revised April 2026)
 
-Each step unblocks the next, so do them in order rather than in parallel:
+UX phase (§1.5) comes first — feature work doesn't matter if the panel feels unsafe or unprofessional.
 
-1. **Stripe webhook + persistence** (P0 #1) — fixes the correctness bug. Smallest scope, biggest impact. Without this, you cannot accept real online payments.
-2. **Order detail page** (P0 #2) — first thing you need once orders exist.
-3. **Image upload to Supabase Storage** (P0 #6) — pulled forward because it's a dependency for the next step.
-4. **Product edit + variant/stock management** (P0 #3, #4) — day-2 store ops.
-5. **Category & coupon edit/delete** (P0 #5) — quick wins.
-6. **COD fulfillment workflow + customer detail** (P1 #7, #8).
-7. **Reviews + hero banner edit + analytics** (P1 #9, #10, #11).
-8. P2 items as time allows.
+1. **UX Sprint A** — Safety & feedback (deletes need confirmation, every action needs a toast, no more silent failures).
+2. **UX Sprint B** — Visual design system (color tokens, status badges, button/card components, icons, empty state, KPI cards).
+3. **UX Sprint C** — Wayfinding & polish (active nav, focus rings, breadcrumbs, custom 404, danger styling everywhere).
+4. **UX Sprint D** — List ergonomics (pagination, search, sortable columns, status filter chips).
+5. **UX Sprint E** — Forms & microcopy.
+6. **UX Sprint F** — Mobile responsive.
+7. **UX Sprint G** — Density refinements.
+8. **P0-1: Stripe webhook + order persistence** — only remaining correctness bug on the feature side.
+9. **P1-1: COD fulfillment workflow** — `confirmed` status step, internal notes, timestamps.
+10. **P1-2: Reviews moderation**.
+11. **P1-3: Real dashboard analytics**.
+12. P2 items as time allows.
+
+The Sprints 1–5 in §0 are the *previous* phase (feature CRUD) and stay there as a record of what shipped.
 
 ---
 

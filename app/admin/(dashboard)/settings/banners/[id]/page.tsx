@@ -1,16 +1,12 @@
 import Link from "next/link"
-import { notFound, redirect } from "next/navigation"
+import { notFound } from "next/navigation"
 import { AdminSetupNotice } from "@/components/admin-empty-state"
+import { ConfirmDeleteForm } from "@/components/admin/confirm-delete-form"
+import { SubmitButton } from "@/components/admin/submit-button"
 import { deleteHeroBanner, updateHeroBanner } from "@/app/admin/actions"
 import { getAdminHeroBannerById } from "@/lib/admin"
 
 export const metadata = { title: "Editer hero banner" }
-
-async function deleteBannerAndRedirect(formData: FormData) {
-  "use server"
-  await deleteHeroBanner(formData)
-  redirect("/admin/settings")
-}
 
 export default async function AdminHeroBannerEditPage({
   params,
@@ -109,12 +105,7 @@ export default async function AdminHeroBannerEditPage({
                 />
                 Active
               </label>
-              <button
-                type="submit"
-                className="bg-foreground px-5 py-3 text-[11px] uppercase tracking-[0.22em] text-background"
-              >
-                Enregistrer
-              </button>
+              <SubmitButton>Enregistrer</SubmitButton>
             </div>
           </form>
 
@@ -130,22 +121,21 @@ export default async function AdminHeroBannerEditPage({
                 />
               </div>
             )}
-            <form
-              action={deleteBannerAndRedirect}
-              className="border border-border p-5"
-            >
-              <input type="hidden" name="id" value={banner.id} />
+            <div className="border border-border p-5">
               <p className="label-eyebrow">Zone dangereuse</p>
-              <p className="mt-3 text-sm text-smoke">
-                Supprime definitivement la banniere de la homepage.
+              <p className="mt-3 mb-4 text-sm text-smoke">
+                Supprime définitivement la bannière de la homepage.
               </p>
-              <button
-                type="submit"
-                className="mt-4 w-full border border-border px-4 py-3 text-[11px] uppercase tracking-[0.22em] text-smoke hover:text-foreground"
-              >
-                Supprimer la banniere
-              </button>
-            </form>
+              <ConfirmDeleteForm
+                action={deleteHeroBanner}
+                hidden={[{ name: "id", value: banner.id }]}
+                successMessage={`Bannière "${banner.title}" supprimée`}
+                description={`Supprimer définitivement la bannière "${banner.title}" ?`}
+                triggerLabel="Supprimer la bannière"
+                size="block"
+                redirectTo="/admin/settings"
+              />
+            </div>
           </aside>
         </section>
       )}

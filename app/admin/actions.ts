@@ -5,6 +5,19 @@ import { redirect } from "next/navigation"
 import { requireAdmin } from "@/lib/admin"
 import { createAdminClient } from "@/lib/supabase/admin"
 
+export type ActionResult =
+  | { ok: true; message?: string }
+  | { ok: false; error: string }
+
+const ERR_NO_CLIENT: ActionResult = {
+  ok: false,
+  error: "Connexion Supabase indisponible",
+}
+const ERR_BAD_INPUT: ActionResult = {
+  ok: false,
+  error: "Donnees du formulaire invalides",
+}
+
 function slugify(value: string) {
   return value
     .toLowerCase()
@@ -115,18 +128,20 @@ export async function updateCategory(formData: FormData) {
   redirect("/admin/categories")
 }
 
-export async function deleteCategory(formData: FormData) {
+export async function deleteCategory(formData: FormData): Promise<ActionResult> {
   await requireAdmin()
   const supabase = createAdminClient()
-  if (!supabase) return
+  if (!supabase) return ERR_NO_CLIENT
 
   const id = String(formData.get("id") ?? "").trim()
-  if (!id) return
+  if (!id) return ERR_BAD_INPUT
 
-  await supabase.from("categories").delete().eq("id", id)
+  const { error } = await supabase.from("categories").delete().eq("id", id)
+  if (error) return { ok: false, error: error.message }
   revalidatePath("/admin/categories")
   revalidatePath("/shop")
   revalidatePath("/")
+  return { ok: true }
 }
 
 export async function createProduct(formData: FormData) {
@@ -235,18 +250,20 @@ export async function updateProduct(formData: FormData) {
   redirect("/admin/products")
 }
 
-export async function deleteProduct(formData: FormData) {
+export async function deleteProduct(formData: FormData): Promise<ActionResult> {
   await requireAdmin()
   const supabase = createAdminClient()
-  if (!supabase) return
+  if (!supabase) return ERR_NO_CLIENT
 
   const id = String(formData.get("id") ?? "").trim()
-  if (!id) return
+  if (!id) return ERR_BAD_INPUT
 
-  await supabase.from("products").delete().eq("id", id)
+  const { error } = await supabase.from("products").delete().eq("id", id)
+  if (error) return { ok: false, error: error.message }
   revalidatePath("/admin/products")
   revalidatePath("/shop")
   revalidatePath("/")
+  return { ok: true }
 }
 
 export async function addProductImage(formData: FormData) {
@@ -284,18 +301,22 @@ export async function addProductImage(formData: FormData) {
   revalidatePath("/")
 }
 
-export async function deleteProductImage(formData: FormData) {
+export async function deleteProductImage(
+  formData: FormData,
+): Promise<ActionResult> {
   await requireAdmin()
   const supabase = createAdminClient()
-  if (!supabase) return
+  if (!supabase) return ERR_NO_CLIENT
 
   const id = String(formData.get("id") ?? "").trim()
   const productId = String(formData.get("product_id") ?? "").trim()
-  if (!id) return
+  if (!id) return ERR_BAD_INPUT
 
-  await supabase.from("product_images").delete().eq("id", id)
+  const { error } = await supabase.from("product_images").delete().eq("id", id)
+  if (error) return { ok: false, error: error.message }
   if (productId) revalidatePath(`/admin/products/${productId}`)
   revalidatePath("/shop")
+  return { ok: true }
 }
 
 export async function addProductVariant(formData: FormData) {
@@ -325,44 +346,66 @@ export async function addProductVariant(formData: FormData) {
   revalidatePath(`/admin/products/${productId}`)
 }
 
-export async function updateVariantStock(formData: FormData) {
+export async function updateVariantStock(
+  formData: FormData,
+): Promise<ActionResult> {
   await requireAdmin()
   const supabase = createAdminClient()
-  if (!supabase) return
+  if (!supabase) return ERR_NO_CLIENT
 
   const id = String(formData.get("id") ?? "").trim()
   const productId = String(formData.get("product_id") ?? "").trim()
-  if (!id) return
+  if (!id) return ERR_BAD_INPUT
 
   const stock = Math.max(0, Number(formData.get("stock") ?? 0))
-  await supabase.from("product_variants").update({ stock }).eq("id", id)
+  const { error } = await supabase
+    .from("product_variants")
+    .update({ stock })
+    .eq("id", id)
+  if (error) return { ok: false, error: error.message }
   if (productId) revalidatePath(`/admin/products/${productId}`)
+  return { ok: true, message: "Stock mis a jour" }
 }
 
-export async function deleteProductVariant(formData: FormData) {
+export async function deleteProductVariant(
+  formData: FormData,
+): Promise<ActionResult> {
   await requireAdmin()
   const supabase = createAdminClient()
-  if (!supabase) return
+  if (!supabase) return ERR_NO_CLIENT
 
   const id = String(formData.get("id") ?? "").trim()
   const productId = String(formData.get("product_id") ?? "").trim()
-  if (!id) return
+  if (!id) return ERR_BAD_INPUT
 
-  await supabase.from("product_variants").delete().eq("id", id)
+  const { error } = await supabase
+    .from("product_variants")
+    .delete()
+    .eq("id", id)
+  if (error) return { ok: false, error: error.message }
   if (productId) revalidatePath(`/admin/products/${productId}`)
+  return { ok: true }
 }
 
-export async function updateOrderStatus(formData: FormData) {
+export async function updateOrderStatus(
+  formData: FormData,
+): Promise<ActionResult> {
   await requireAdmin()
   const supabase = createAdminClient()
-  if (!supabase) return
+  if (!supabase) return ERR_NO_CLIENT
 
   const id = String(formData.get("id") ?? "")
   const status = String(formData.get("status") ?? "pending")
-  if (!id) return
+  if (!id) return ERR_BAD_INPUT
 
-  await supabase.from("orders").update({ status }).eq("id", id)
+  const { error } = await supabase
+    .from("orders")
+    .update({ status })
+    .eq("id", id)
+  if (error) return { ok: false, error: error.message }
   revalidatePath("/admin/orders")
+  revalidatePath(`/admin/orders/${id}`)
+  return { ok: true, message: "Statut mis a jour" }
 }
 
 export async function createCoupon(formData: FormData) {
@@ -415,16 +458,18 @@ export async function updateCoupon(formData: FormData) {
   redirect("/admin/coupons")
 }
 
-export async function deleteCoupon(formData: FormData) {
+export async function deleteCoupon(formData: FormData): Promise<ActionResult> {
   await requireAdmin()
   const supabase = createAdminClient()
-  if (!supabase) return
+  if (!supabase) return ERR_NO_CLIENT
 
   const id = String(formData.get("id") ?? "").trim()
-  if (!id) return
+  if (!id) return ERR_BAD_INPUT
 
-  await supabase.from("coupons").delete().eq("id", id)
+  const { error } = await supabase.from("coupons").delete().eq("id", id)
+  if (error) return { ok: false, error: error.message }
   revalidatePath("/admin/coupons")
+  return { ok: true }
 }
 
 export async function updateBrandSettings(formData: FormData) {
@@ -505,18 +550,28 @@ export async function createHeroBanner(formData: FormData) {
   revalidatePath("/admin/settings")
 }
 
-export async function toggleHeroBanner(formData: FormData) {
+export async function toggleHeroBanner(
+  formData: FormData,
+): Promise<ActionResult> {
   await requireAdmin()
   const supabase = createAdminClient()
-  if (!supabase) return
+  if (!supabase) return ERR_NO_CLIENT
 
   const id = String(formData.get("id") ?? "")
   const nextActive = String(formData.get("next_active") ?? "") === "true"
-  if (!id) return
+  if (!id) return ERR_BAD_INPUT
 
-  await supabase.from("hero_banners").update({ is_active: nextActive }).eq("id", id)
+  const { error } = await supabase
+    .from("hero_banners")
+    .update({ is_active: nextActive })
+    .eq("id", id)
+  if (error) return { ok: false, error: error.message }
   revalidatePath("/")
   revalidatePath("/admin/settings")
+  return {
+    ok: true,
+    message: nextActive ? "Banniere activee" : "Banniere desactivee",
+  }
 }
 
 export async function updateHeroBanner(formData: FormData) {
@@ -555,16 +610,18 @@ export async function updateHeroBanner(formData: FormData) {
   redirect("/admin/settings")
 }
 
-export async function updateCustomerProfile(formData: FormData) {
+export async function updateCustomerProfile(
+  formData: FormData,
+): Promise<ActionResult> {
   await requireAdmin()
   const supabase = createAdminClient()
-  if (!supabase) return
+  if (!supabase) return ERR_NO_CLIENT
 
   const id = String(formData.get("id") ?? "").trim()
-  if (!id) return
+  if (!id) return ERR_BAD_INPUT
 
   const role = String(formData.get("role") ?? "customer")
-  if (role !== "customer" && role !== "admin") return
+  if (role !== "customer" && role !== "admin") return ERR_BAD_INPUT
 
   const { error } = await supabase
     .from("profiles")
@@ -576,20 +633,25 @@ export async function updateCustomerProfile(formData: FormData) {
     })
     .eq("id", id)
 
-  if (error) return
+  if (error) return { ok: false, error: error.message }
   revalidatePath("/admin/customers")
   revalidatePath(`/admin/customers/${id}`)
+  return { ok: true, message: "Profil mis a jour" }
 }
 
-export async function deleteHeroBanner(formData: FormData) {
+export async function deleteHeroBanner(
+  formData: FormData,
+): Promise<ActionResult> {
   await requireAdmin()
   const supabase = createAdminClient()
-  if (!supabase) return
+  if (!supabase) return ERR_NO_CLIENT
 
   const id = String(formData.get("id") ?? "")
-  if (!id) return
+  if (!id) return ERR_BAD_INPUT
 
-  await supabase.from("hero_banners").delete().eq("id", id)
+  const { error } = await supabase.from("hero_banners").delete().eq("id", id)
+  if (error) return { ok: false, error: error.message }
   revalidatePath("/")
   revalidatePath("/admin/settings")
+  return { ok: true }
 }

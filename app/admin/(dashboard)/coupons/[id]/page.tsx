@@ -1,16 +1,12 @@
 import Link from "next/link"
-import { notFound, redirect } from "next/navigation"
+import { notFound } from "next/navigation"
 import { AdminSetupNotice } from "@/components/admin-empty-state"
+import { ConfirmDeleteForm } from "@/components/admin/confirm-delete-form"
+import { SubmitButton } from "@/components/admin/submit-button"
 import { deleteCoupon, updateCoupon } from "@/app/admin/actions"
 import { getAdminCouponById } from "@/lib/admin"
 
 export const metadata = { title: "Editer coupon" }
-
-async function deleteCouponAndRedirect(formData: FormData) {
-  "use server"
-  await deleteCoupon(formData)
-  redirect("/admin/coupons")
-}
 
 function toDateInputValue(iso: string | null | undefined) {
   if (!iso) return ""
@@ -100,12 +96,7 @@ export default async function AdminCouponEditPage({
                 />
                 Actif
               </label>
-              <button
-                type="submit"
-                className="bg-foreground px-5 py-3 text-[11px] uppercase tracking-[0.22em] text-background"
-              >
-                Enregistrer
-              </button>
+              <SubmitButton>Enregistrer</SubmitButton>
             </div>
           </form>
 
@@ -116,23 +107,22 @@ export default async function AdminCouponEditPage({
                 {coupon.id}
               </p>
             </div>
-            <form
-              action={deleteCouponAndRedirect}
-              className="border border-border p-5"
-            >
-              <input type="hidden" name="id" value={coupon.id} />
+            <div className="border border-border p-5">
               <p className="label-eyebrow">Zone dangereuse</p>
-              <p className="mt-3 text-sm text-smoke">
-                La suppression est definitive. Les commandes utilisant le code
+              <p className="mt-3 mb-4 text-sm text-smoke">
+                La suppression est définitive. Les commandes utilisant le code
                 gardent l&apos;historique.
               </p>
-              <button
-                type="submit"
-                className="mt-4 w-full border border-border px-4 py-3 text-[11px] uppercase tracking-[0.22em] text-smoke hover:text-foreground"
-              >
-                Supprimer le coupon
-              </button>
-            </form>
+              <ConfirmDeleteForm
+                action={deleteCoupon}
+                hidden={[{ name: "id", value: coupon.id }]}
+                successMessage={`Coupon ${coupon.code} supprimé`}
+                description={`Supprimer définitivement le coupon "${coupon.code}" ?`}
+                triggerLabel="Supprimer le coupon"
+                size="block"
+                redirectTo="/admin/coupons"
+              />
+            </div>
           </aside>
         </section>
       )}
