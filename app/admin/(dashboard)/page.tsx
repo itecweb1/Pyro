@@ -18,10 +18,11 @@ import { formatPrice } from "@/lib/format"
 export const metadata = { title: "Admin" }
 
 export default async function AdminPage() {
-  const [metrics, orders] = await Promise.all([
+  const [metrics, ordersResult] = await Promise.all([
     getAdminMetrics(),
-    getAdminOrders(),
+    getAdminOrders({ page: 1, limit: 5 }),
   ])
+  const orders = ordersResult.rows
 
   return (
     <div className="space-y-8">

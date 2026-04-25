@@ -186,6 +186,21 @@ Shared admin UI primitives. Always reuse these instead of one-off classes.
 | `<KpiCard>` (Sprint B) | Eyebrow + icon + tabular value + optional trend pill | dashboard tiles |
 | `<AdminNav>` (Sprint C) | Sidebar nav with active state via `usePathname()` | already mounted in `AdminShell` |
 | `<Breadcrumbs>` (Sprint C) | Crumb trail with `ChevronRight` separators | every detail page header |
+| `<SearchInput>` (Sprint D) | Debounced client search box that owns `?q=` and resets `?page` on change | every list page |
+| `<Pagination>` (Sprint D) | Server-rendered prev / next + "X–Y of N" counter | every list page |
+| `<SortableHeader>` (Sprint D) | Clickable `<th>` toggling `?sort` + `?dir` with arrow indicator | sortable table columns |
+| `<StatusFilterChips>` (Sprint D) | Pill chips for the `?status` URL param, with counts | `/admin/orders` |
+
+### List page URL params (Sprint D)
+Every admin list page uses URL params as the source of truth so links/back-button work:
+- `?q=text` — server-side `ilike` search (escaped)
+- `?sort=field&dir=asc|desc` — sort. Each query whitelists fields for SQL safety.
+- `?page=N` — 1-indexed page number
+- `?status=value` — orders only (filter chips)
+
+Parse via `parseListParams(searchParams, { allowedSorts, defaultSort, defaultDir })` from `lib/list-params.ts`. Build links via `buildListUrl(basePath, currentParams, next)` which auto-resets `page` when filters change.
+
+Admin list queries return `{ rows, total }` and accept `{ page, limit, q, sort, dir, status }`. Total comes from Supabase `count: "exact"`.
 
 ### Action result contract (Sprint A)
 Server actions in `app/admin/actions.ts` return:

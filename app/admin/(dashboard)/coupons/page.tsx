@@ -4,15 +4,46 @@ import { createCoupon, deleteCoupon } from "@/app/admin/actions"
 import { AdminSetupNotice } from "@/components/admin-empty-state"
 import { ConfirmDeleteForm } from "@/components/admin/confirm-delete-form"
 import { EmptyState } from "@/components/admin/empty-state"
+import { Pagination } from "@/components/admin/pagination"
+import { SearchInput } from "@/components/admin/search-input"
 import { StatusBadge } from "@/components/admin/status-badge"
 import { SubmitButton } from "@/components/admin/submit-button"
 import { getAdminCoupons } from "@/lib/admin"
+import { parseListParams } from "@/lib/list-params"
 
 export const metadata = { title: "Admin coupons" }
 
-export default async function AdminCouponsPage() {
-  const coupons = await getAdminCoupons()
+const PAGE_SIZE = 25
+const ALLOWED_SORTS = ["created_at", "code", "value"] as const
+
+export default async function AdminCouponsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}) {
+  const sp = await searchParams
+  const params = parseListParams(sp, {
+    allowedSorts: ALLOWED_SORTS,
+    defaultSort: "created_at",
+    defaultDir: "desc",
+  })
+
+  const { rows: coupons, total } = await getAdminCoupons({
+    page: params.page,
+    limit: PAGE_SIZE,
+    q: params.q,
+    sort: params.sort,
+    dir: params.dir,
+  })
+
   const configured = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY)
+  const basePath = "/admin/coupons"
+  const currentParams = {
+    q: params.q || null,
+    sort: params.sort,
+    dir: params.dir,
+    page: params.page > 1 ? params.page : null,
+  }
 
   return (
     <div className="space-y-8">
@@ -47,43 +78,65 @@ export default async function AdminCouponsPage() {
           </div>
         </form>
 
-        <div className="border border-border">
-          {coupons.map((coupon) => (
-            <article
-              key={coupon.id}
-              className="grid gap-3 border-b border-border p-5 last:border-b-0 md:grid-cols-[1fr_auto_auto_auto_auto] md:items-center"
-            >
-              <p className="font-mono text-sm font-medium tracking-wider">
-                {coupon.code}
-              </p>
-              <p className="text-sm text-smoke">
-                {coupon.type === "percent"
-                  ? `${coupon.value} %`
-                  : `${coupon.value} MAD`}
-              </p>
-              <StatusBadge status={coupon.is_active ? "active" : "inactive"} />
-              <Link
-                href={`/admin/coupons/${coupon.id}`}
-                className="inline-flex items-center justify-center gap-1.5 border border-border px-4 py-3 text-[11px] uppercase tracking-[0.22em] transition-colors hover:bg-secondary"
+        <div className="space-y-4">
+          <SearchInput placeholder="Rechercher un code…" />
+
+          <div className="border border-border">
+            {coupons.map((coupon) => (
+              <article
+                key={coupon.id}
+                className="grid gap-3 border-b border-border p-5 transition-colors last:border-b-0 hover:bg-secondary/40 md:grid-cols-[1fr_auto_auto_auto_auto] md:items-center"
               >
-                <Pencil className="size-3" strokeWidth={1.5} />
-                Editer
-              </Link>
-              <ConfirmDeleteForm
-                action={deleteCoupon}
-                hidden={[{ name: "id", value: coupon.id }]}
-                successMessage={`Coupon ${coupon.code} supprimé`}
-                description={`Supprimer le coupon "${coupon.code}" ? L'historique des commandes utilisant ce code reste intact.`}
-              />
-            </article>
-          ))}
-          {coupons.length === 0 && (
-            <EmptyState
-              icon={TicketPercent}
-              title="Aucun coupon"
-              description="Crée ton premier code promo en utilisant le formulaire à gauche."
+                <p className="font-mono text-sm font-medium tracking-wider">
+                  {coupon.code}
+                </p>
+                <p className="text-sm text-smoke">
+                  {coupon.type === "percent"
+                    ? `${coupon.value} %`
+                    : `${coupon.value} MAD`}
+                </p>
+                <StatusBadge status={coupon.is_active ? "active" : "inactive"} />
+                <Link
+                  href={`/admin/coupons/${coupon.id}`}
+                  className="inline-flex items-center justify-center gap-1.5 border border-border px-4 py-3 text-[11px] uppercase tracking-[0.22em] transition-colors hover:bg-secondary"
+                >
+                  <Pencil className="size-3" strokeWidth={1.5} />
+                  Editer
+                </Link>
+                <ConfirmDeleteForm
+                  action={deleteCoupon}
+                  hidden={[{ name: "id", value: coupon.id }]}
+                  successMessage={`Coupon ${coupon.code} supprimé`}
+                  description={`Supprimer le coupon "${coupon.code}" ? L'historique des commandes utilisant ce code reste intact.`}
+                />
+              </article>
+            ))}
+            {coupons.length === 0 && (
+              <>
+                {params.q ? (
+                  <EmptyState
+                    icon={TicketPercent}
+                    title="Aucun résultat"
+                    description={`Aucun coupon ne correspond à « ${params.q} ».`}
+                  />
+                ) : (
+                  <EmptyState
+                    icon={TicketPercent}
+                    title="Aucun coupon"
+                    description="Crée ton premier code promo en utilisant le formulaire à gauche."
+                  />
+                )}
+              </>
+            )}
+            <Pagination
+              basePath={basePath}
+              currentParams={currentParams}
+              page={params.page}
+              pageSize={PAGE_SIZE}
+              total={total}
+              itemNoun="coupons"
             />
-          )}
+          </div>
         </div>
       </section>
     </div>

@@ -5,6 +5,33 @@ import { hasSupabaseEnv } from "@/lib/supabase/config"
 import { defaultBrandSettings, defaultHeroBanners } from "@/lib/content"
 import type { BrandSettings, HeroBanner } from "@/lib/types"
 
+// ----- list params -----
+
+export type AdminListParams = {
+  page?: number
+  limit?: number
+  q?: string
+  sort?: string | null
+  dir?: "asc" | "desc"
+  status?: string | null
+}
+
+export type AdminListResult<T> = {
+  rows: T[]
+  total: number
+}
+
+function rangeFor(page: number, limit: number): [number, number] {
+  const from = Math.max(0, (page - 1) * limit)
+  const to = from + limit - 1
+  return [from, to]
+}
+
+/** Escape `%` and `_` so user input doesn't act as a wildcard in `ilike`. */
+function escapeIlike(value: string): string {
+  return value.replace(/[\\%_]/g, (m) => `\\${m}`)
+}
+
 export type AdminProduct = {
   id: string
   slug: string
@@ -172,18 +199,46 @@ export async function getAdminMetrics() {
   }
 }
 
-export async function getAdminProducts() {
-  const supabase = createAdminClient()
-  if (!supabase) return []
+const PRODUCT_SORTS = ["created_at", "name", "price_cents"] as const
+export type ProductSortField = (typeof PRODUCT_SORTS)[number]
 
-  const { data } = await supabase
+export async function getAdminProducts(
+  params: AdminListParams = {},
+): Promise<AdminListResult<AdminProduct>> {
+  const supabase = createAdminClient()
+  if (!supabase) return { rows: [], total: 0 }
+
+  const page = params.page ?? 1
+  const limit = params.limit ?? 25
+  const sort: ProductSortField = (PRODUCT_SORTS as readonly string[]).includes(
+    params.sort ?? "",
+  )
+    ? (params.sort as ProductSortField)
+    : "created_at"
+  const ascending = params.dir === "asc"
+  const [from, to] = rangeFor(page, limit)
+
+  let query = supabase
     .from("products")
     .select(
       "id, slug, name, price_cents, currency, is_active, is_featured, category:categories(name), variants:product_variants(stock)",
+      { count: "exact" },
     )
-    .order("created_at", { ascending: false })
 
-  return (data ?? []) as unknown as AdminProduct[]
+  const q = params.q?.trim()
+  if (q) {
+    const safe = `%${escapeIlike(q)}%`
+    query = query.or(`name.ilike.${safe},slug.ilike.${safe}`)
+  }
+
+  const { data, count } = await query
+    .order(sort, { ascending })
+    .range(from, to)
+
+  return {
+    rows: (data ?? []) as unknown as AdminProduct[],
+    total: count ?? 0,
+  }
 }
 
 export type AdminProductDetail = {
@@ -272,19 +327,87 @@ export async function getAdminCategoryById(id: string) {
     | null
 }
 
-export async function getAdminOrders() {
-  const supabase = createAdminClient()
-  if (!supabase) return []
+const ORDER_SORTS = ["created_at", "total_cents", "status"] as const
+export type OrderSortField = (typeof ORDER_SORTS)[number]
+const ORDER_STATUSES = [
+  "pending",
+  "paid",
+  "shipped",
+  "delivered",
+  "cancelled",
+  "refunded",
+] as const
 
-  const { data } = await supabase
+export async function getAdminOrders(
+  params: AdminListParams = {},
+): Promise<AdminListResult<AdminOrder>> {
+  const supabase = createAdminClient()
+  if (!supabase) return { rows: [], total: 0 }
+
+  const page = params.page ?? 1
+  const limit = params.limit ?? 25
+  const sort: OrderSortField = (ORDER_SORTS as readonly string[]).includes(
+    params.sort ?? "",
+  )
+    ? (params.sort as OrderSortField)
+    : "created_at"
+  const ascending = params.dir === "asc"
+  const [from, to] = rangeFor(page, limit)
+
+  let query = supabase
     .from("orders")
     .select(
       "id, created_at, status, email, payment_method, shipping_city, shipping_phone, total_cents, currency",
+      { count: "exact" },
     )
-    .order("created_at", { ascending: false })
-    .limit(50)
 
-  return (data ?? []) as unknown as AdminOrder[]
+  if (params.status && (ORDER_STATUSES as readonly string[]).includes(params.status)) {
+    query = query.eq("status", params.status)
+  }
+
+  const q = params.q?.trim()
+  if (q) {
+    const safe = `%${escapeIlike(q)}%`
+    query = query.or(
+      `email.ilike.${safe},shipping_phone.ilike.${safe},shipping_city.ilike.${safe},shipping_name.ilike.${safe}`,
+    )
+  }
+
+  const { data, count } = await query
+    .order(sort, { ascending })
+    .range(from, to)
+
+  return {
+    rows: (data ?? []) as unknown as AdminOrder[],
+    total: count ?? 0,
+  }
+}
+
+/** One round trip to get all status counts for the filter chips. */
+export async function getOrderStatusCounts(): Promise<
+  Record<string, number> & { _all: number }
+> {
+  const supabase = createAdminClient()
+  const empty = {
+    _all: 0,
+    pending: 0,
+    paid: 0,
+    shipped: 0,
+    delivered: 0,
+    cancelled: 0,
+    refunded: 0,
+  }
+  if (!supabase) return empty
+
+  const { data } = await supabase.from("orders").select("status")
+  if (!data) return empty
+
+  const counts: Record<string, number> = { ...empty }
+  for (const row of data as { status: string }[]) {
+    counts._all = (counts._all ?? 0) + 1
+    counts[row.status] = (counts[row.status] ?? 0) + 1
+  }
+  return counts as Record<string, number> & { _all: number }
 }
 
 export type AdminOrderDetail = {
@@ -357,17 +480,47 @@ export async function getAdminOrderById(id: string): Promise<AdminOrderDetail | 
   return { ...(order as unknown as AdminOrderDetail), customer }
 }
 
-export async function getAdminCustomers() {
+const CUSTOMER_SORTS = ["created_at", "last_name"] as const
+export type CustomerSortField = (typeof CUSTOMER_SORTS)[number]
+
+export async function getAdminCustomers(
+  params: AdminListParams = {},
+): Promise<AdminListResult<AdminCustomer>> {
   const supabase = createAdminClient()
-  if (!supabase) return []
+  if (!supabase) return { rows: [], total: 0 }
 
-  const { data } = await supabase
+  const page = params.page ?? 1
+  const limit = params.limit ?? 50
+  const sort: CustomerSortField = (CUSTOMER_SORTS as readonly string[]).includes(
+    params.sort ?? "",
+  )
+    ? (params.sort as CustomerSortField)
+    : "created_at"
+  const ascending = params.dir === "asc"
+  const [from, to] = rangeFor(page, limit)
+
+  let query = supabase
     .from("profiles")
-    .select("id, first_name, last_name, phone, role, created_at")
-    .order("created_at", { ascending: false })
-    .limit(50)
+    .select("id, first_name, last_name, phone, role, created_at", {
+      count: "exact",
+    })
 
-  return (data ?? []) as unknown as AdminCustomer[]
+  const q = params.q?.trim()
+  if (q) {
+    const safe = `%${escapeIlike(q)}%`
+    query = query.or(
+      `first_name.ilike.${safe},last_name.ilike.${safe},phone.ilike.${safe}`,
+    )
+  }
+
+  const { data, count } = await query
+    .order(sort, { ascending })
+    .range(from, to)
+
+  return {
+    rows: (data ?? []) as unknown as AdminCustomer[],
+    total: count ?? 0,
+  }
 }
 
 export type AdminCustomerDetail = AdminCustomer & {
@@ -424,16 +577,45 @@ export async function getAdminHeroBannerById(id: string) {
   return (data ?? null) as HeroBanner | null
 }
 
-export async function getAdminCoupons() {
+const COUPON_SORTS = ["created_at", "code", "value"] as const
+export type CouponSortField = (typeof COUPON_SORTS)[number]
+
+export async function getAdminCoupons(
+  params: AdminListParams = {},
+): Promise<AdminListResult<AdminCoupon>> {
   const supabase = createAdminClient()
-  if (!supabase) return []
+  if (!supabase) return { rows: [], total: 0 }
 
-  const { data } = await supabase
+  const page = params.page ?? 1
+  const limit = params.limit ?? 25
+  const sort: CouponSortField = (COUPON_SORTS as readonly string[]).includes(
+    params.sort ?? "",
+  )
+    ? (params.sort as CouponSortField)
+    : "created_at"
+  const ascending = params.dir === "asc"
+  const [from, to] = rangeFor(page, limit)
+
+  let query = supabase
     .from("coupons")
-    .select("id, code, type, value, is_active, starts_at, ends_at")
-    .order("created_at", { ascending: false })
+    .select("id, code, type, value, is_active, starts_at, ends_at", {
+      count: "exact",
+    })
 
-  return (data ?? []) as unknown as AdminCoupon[]
+  const q = params.q?.trim()
+  if (q) {
+    const safe = `%${escapeIlike(q)}%`
+    query = query.ilike("code", safe)
+  }
+
+  const { data, count } = await query
+    .order(sort, { ascending })
+    .range(from, to)
+
+  return {
+    rows: (data ?? []) as unknown as AdminCoupon[],
+    total: count ?? 0,
+  }
 }
 
 export async function getAdminCouponById(id: string) {

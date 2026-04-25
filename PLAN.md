@@ -17,8 +17,9 @@ Living document. Tracks current state of the storefront + admin and the prioriti
 - **UX Sprint A — Safety & feedback.** `<ConfirmDeleteForm>` (Radix dialog) on every delete; `<SubmitButton>` with `useFormStatus` loading state on every form; `<FormToast>` (`useActionState`) wrapping inline updates; Sonner toaster in admin shell; all destructive + inline-update server actions return `ActionResult` (`{ ok, error }`).
 - **UX Sprint B — Visual design system.** Semantic color tokens (success/warning/danger/info × 5 stops) in `globals.css`; `<StatusBadge>` mapping DB values to French labels with tinted bg + dot; `<Button>` with variants/sizes; `<Card>` with tones; `<EmptyState>`; `<KpiCard>`; dashboard refactored; status badges and lucide icons applied across every list/detail.
 - **UX Sprint C — Wayfinding & polish.** Active sidebar nav state via `usePathname()`; `<Breadcrumbs>` on every detail page (replaces "Retour" pattern); custom admin `not-found.tsx`; focus rings on all inputs; consistent danger styling everywhere.
+- **UX Sprint D — List ergonomics.** URL-based search/sort/pagination (`?q`, `?sort`, `?dir`, `?page`, `?status`). New components: `<SearchInput>` (debounced), `<Pagination>`, `<SortableHeader>`, `<StatusFilterChips>`. New `lib/list-params.ts` parses + validates URL params. Admin queries (`getAdminProducts`, `getAdminOrders`, `getAdminCustomers`, `getAdminCoupons`) refactored to accept `{page, limit, q, sort, dir, status}` and return `{rows, total}` with Supabase `count: "exact"`. `getOrderStatusCounts()` for the orders chips. Server-side `ilike` with input escaping.
 
-The admin is now both feature-complete AND ship-quality on UX through Sprint C. Remaining: list ergonomics (D), forms & microcopy (E), mobile responsive (F), density refinements (G), then Stripe webhook (P0-1).
+The admin is feature-complete and ship-quality on UX through Sprint D. Remaining: forms & microcopy (E), mobile responsive (F), density refinements (G), then Stripe webhook (P0-1).
 
 ---
 
@@ -68,13 +69,8 @@ Delivered: semantic color tokens (success/warning/danger/info × 5 stops, OKLCH)
 ### ~~UX Sprint C — Wayfinding & polish~~ ✅ shipped
 Delivered: active sidebar nav via `usePathname()`, `<Breadcrumbs>` on 6 detail pages, custom admin `not-found.tsx`, focus rings on every Input/Textarea, consistent danger styling.
 
-### UX Sprint D — List ergonomics
-Makes the admin scale past a few seed products.
-- Server-side pagination on products / orders / customers (URL `?page=N`, prev/next)
-- Search bar on each list (debounced, server-side `ilike` on relevant fields)
-- Sortable column headers (URL `?sort=price&dir=desc`, click to toggle)
-- Better empty states using Sprint B's `<EmptyState>` ("Aucun produit. **Créer le premier produit →**")
-- Status filter chips on `/admin/orders` (Tous / En attente / Payé / Expédié / Livré / Annulé)
+### ~~UX Sprint D — List ergonomics~~ ✅ shipped
+Delivered: URL-based search/sort/pagination on products, orders, customers, coupons. New components `<SearchInput>` (debounced), `<Pagination>`, `<SortableHeader>`, `<StatusFilterChips>`. Helper `lib/list-params.ts`. Admin queries refactored to `{rows, total}` shape. Order status filter chips with counts. Search-aware empty states.
 
 ### UX Sprint E — Forms & microcopy
 - Standardize button verbs project-wide: `Créer …` (insert), `Enregistrer` (update), `Ajouter` (append to list), `Supprimer` (destroy). Forbid `Sauvegarder` / `Modifier`.
@@ -202,8 +198,8 @@ UX phase comes first — feature work doesn't matter if the panel feels unsafe o
 1. ~~UX Sprint A — Safety & feedback~~ ✅ shipped
 2. ~~UX Sprint B — Visual design system~~ ✅ shipped
 3. ~~UX Sprint C — Wayfinding & polish~~ ✅ shipped
-4. **UX Sprint D — List ergonomics** *(next up)* — pagination, search, sortable columns, status filter chips on `/admin/orders`.
-5. **UX Sprint E — Forms & microcopy** — verb consistency (Sprint B already localized statuses), image preview before upload, `type="date"` everywhere, number `min`/`step`.
+4. ~~UX Sprint D — List ergonomics~~ ✅ shipped
+5. **UX Sprint E — Forms & microcopy** *(next up)* — verb consistency (Sprint B already localized statuses), image preview before upload, `type="date"` everywhere, number `min`/`step`.
 6. **UX Sprint F — Mobile responsive** — sidebar drawer, tables → cards under `md`.
 7. **UX Sprint G — Density refinements** — variant cards, time on order timestamps, smarter setup notice.
 8. **P0-1: Stripe webhook + order persistence** — only remaining correctness bug on the feature side.
