@@ -1,14 +1,12 @@
 import Link from "next/link"
-import { updateOrderStatus } from "@/app/admin/actions"
+import { ChevronRight, ShoppingBag } from "lucide-react"
 import { AdminSetupNotice } from "@/components/admin-empty-state"
-import { FormToast } from "@/components/admin/form-toast"
-import { SubmitButton } from "@/components/admin/submit-button"
+import { EmptyState } from "@/components/admin/empty-state"
+import { StatusBadge } from "@/components/admin/status-badge"
 import { getAdminOrders } from "@/lib/admin"
 import { formatDate, formatPrice } from "@/lib/format"
 
 export const metadata = { title: "Admin commandes" }
-
-const STATUSES = ["pending", "paid", "shipped", "delivered", "cancelled", "refunded"]
 
 export default async function AdminOrdersPage() {
   const orders = await getAdminOrders()
@@ -26,7 +24,7 @@ export default async function AdminOrdersPage() {
 
       <div className="overflow-x-auto border border-border">
         <table className="w-full min-w-[760px] text-left text-sm">
-          <thead className="border-b border-border text-[11px] uppercase tracking-[0.18em] text-smoke">
+          <thead className="border-b border-border bg-secondary/30 text-[11px] uppercase tracking-[0.18em] text-smoke">
             <tr>
               <th className="p-4">Commande</th>
               <th className="p-4">Client</th>
@@ -39,68 +37,60 @@ export default async function AdminOrdersPage() {
           </thead>
           <tbody className="divide-y divide-border">
             {orders.map((order) => (
-              <tr key={order.id}>
+              <tr
+                key={order.id}
+                className="transition-colors hover:bg-secondary/40"
+              >
                 <td className="p-4">
                   <Link
                     href={`/admin/orders/${order.id}`}
-                    className="font-medium hover:underline"
+                    className="font-medium tabular-nums hover:underline"
                   >
                     #{order.id.slice(0, 8)}
                   </Link>
-                  <p className="mt-1 text-[11px] uppercase tracking-[0.18em] text-smoke">
-                    {order.payment_method === "cod" ? "Paiement livraison" : order.payment_method ?? "-"}
+                  {order.payment_method && (
+                    <div className="mt-2">
+                      <StatusBadge status={order.payment_method} />
+                    </div>
+                  )}
+                </td>
+                <td className="p-4 text-smoke">
+                  <p>{order.email ?? "—"}</p>
+                  <p className="mt-1 text-xs">
+                    {order.shipping_phone ?? "—"}
                   </p>
                 </td>
                 <td className="p-4 text-smoke">
-                  <p>{order.email ?? "-"}</p>
-                  <p className="mt-1 text-xs">{order.shipping_phone ?? "-"}</p>
+                  {order.shipping_city ?? "—"}
                 </td>
-                <td className="p-4 text-smoke">{order.shipping_city ?? "-"}</td>
-                <td className="p-4">{formatDate(order.created_at)}</td>
-                <td className="p-4 tabular-nums">
+                <td className="p-4 text-smoke">
+                  {formatDate(order.created_at)}
+                </td>
+                <td className="p-4 font-medium tabular-nums">
                   {formatPrice(order.total_cents, order.currency)}
                 </td>
                 <td className="p-4">
-                  <FormToast
-                    action={updateOrderStatus}
-                    successMessage="Statut mis à jour"
-                    className="flex gap-2"
-                  >
-                    <input type="hidden" name="id" value={order.id} />
-                    <select
-                      name="status"
-                      defaultValue={order.status}
-                      className="h-9 border border-border bg-background px-2 text-xs"
-                    >
-                      {STATUSES.map((status) => (
-                        <option key={status} value={status}>
-                          {status}
-                        </option>
-                      ))}
-                    </select>
-                    <SubmitButton
-                      variant="secondary"
-                      pendingLabel="…"
-                      className="!px-3 !py-0 !text-[10px]"
-                    >
-                      OK
-                    </SubmitButton>
-                  </FormToast>
+                  <StatusBadge status={order.status} />
                 </td>
                 <td className="p-4 text-right">
                   <Link
                     href={`/admin/orders/${order.id}`}
-                    className="border border-border px-3 py-2 text-[11px] uppercase tracking-[0.22em] hover:bg-secondary"
+                    className="inline-flex items-center gap-1.5 border border-border px-3 py-2 text-[11px] uppercase tracking-[0.22em] transition-colors hover:bg-secondary"
                   >
                     Ouvrir
+                    <ChevronRight className="size-3" strokeWidth={1.5} />
                   </Link>
                 </td>
               </tr>
             ))}
             {orders.length === 0 && (
               <tr>
-                <td className="p-5 text-smoke" colSpan={7}>
-                  Aucune commande.
+                <td colSpan={7}>
+                  <EmptyState
+                    icon={ShoppingBag}
+                    title="Aucune commande"
+                    description="Les commandes apparaîtront ici dès la première vente."
+                  />
                 </td>
               </tr>
             )}

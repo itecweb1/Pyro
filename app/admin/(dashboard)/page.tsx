@@ -1,6 +1,16 @@
 import Link from "next/link"
-import { ArrowUpRight } from "lucide-react"
+import {
+  ArrowUpRight,
+  Package,
+  FolderOpen,
+  ShoppingBag,
+  Users,
+  Mail,
+} from "lucide-react"
 import { AdminSetupNotice } from "@/components/admin-empty-state"
+import { EmptyState } from "@/components/admin/empty-state"
+import { KpiCard } from "@/components/admin/kpi-card"
+import { StatusBadge } from "@/components/admin/status-badge"
 import { adminKpis } from "@/lib/content"
 import { getAdminMetrics, getAdminOrders } from "@/lib/admin"
 import { formatPrice } from "@/lib/format"
@@ -24,19 +34,28 @@ export default async function AdminPage() {
 
       {!metrics && <AdminSetupNotice />}
 
-      <section className="grid gap-4 md:grid-cols-5">
-        {[
-          ["Produits", metrics?.products ?? 0],
-          ["Categories", metrics?.categories ?? 0],
-          ["Commandes", metrics?.orders ?? 0],
-          ["Clients", metrics?.customers ?? 0],
-          ["Newsletter", metrics?.subscribers ?? 0],
-        ].map(([label, value]) => (
-          <article key={label} className="border border-border p-5">
-            <p className="label-eyebrow">{label}</p>
-            <p className="mt-4 font-serif text-4xl">{value}</p>
-          </article>
-        ))}
+      <section className="grid gap-4 md:grid-cols-3 xl:grid-cols-5">
+        <KpiCard
+          label="Produits"
+          icon={Package}
+          value={metrics?.products ?? 0}
+        />
+        <KpiCard
+          label="Catégories"
+          icon={FolderOpen}
+          value={metrics?.categories ?? 0}
+        />
+        <KpiCard
+          label="Commandes"
+          icon={ShoppingBag}
+          value={metrics?.orders ?? 0}
+        />
+        <KpiCard label="Clients" icon={Users} value={metrics?.customers ?? 0} />
+        <KpiCard
+          label="Newsletter"
+          icon={Mail}
+          value={metrics?.subscribers ?? 0}
+        />
       </section>
 
       <section className="grid gap-4 md:grid-cols-2">
@@ -51,31 +70,37 @@ export default async function AdminPage() {
 
       <section className="border border-border">
         <div className="flex items-center justify-between border-b border-border p-5">
-          <h2 className="label-eyebrow">Dernieres commandes</h2>
+          <h2 className="label-eyebrow">Dernières commandes</h2>
           <Link
             href="/admin/orders"
-            className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.22em] text-smoke hover:text-foreground"
+            className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.22em] text-smoke transition-colors hover:text-foreground"
           >
-            Tout voir <ArrowUpRight className="size-3.5" />
+            Tout voir <ArrowUpRight className="size-3.5" strokeWidth={1.5} />
           </Link>
         </div>
         <div className="divide-y divide-border">
           {orders.slice(0, 5).map((order) => (
-            <div
+            <Link
               key={order.id}
-              className="grid gap-2 p-5 text-[13px] md:grid-cols-[1fr_auto_auto]"
+              href={`/admin/orders/${order.id}`}
+              className="grid items-center gap-3 p-5 text-[13px] transition-colors hover:bg-secondary/40 md:grid-cols-[140px_1fr_auto_auto]"
             >
-              <span className="font-medium">#{order.id.slice(0, 8)}</span>
-              <span className="text-smoke">{order.status}</span>
-              <span className="tabular-nums">
+              <span className="font-medium tabular-nums">
+                #{order.id.slice(0, 8)}
+              </span>
+              <StatusBadge status={order.status} />
+              <span className="text-smoke">{order.shipping_city ?? "—"}</span>
+              <span className="font-medium tabular-nums">
                 {formatPrice(order.total_cents, order.currency)}
               </span>
-            </div>
+            </Link>
           ))}
           {orders.length === 0 && (
-            <p className="p-5 text-sm text-smoke">
-              Aucune commande pour l&apos;instant.
-            </p>
+            <EmptyState
+              icon={ShoppingBag}
+              title="Aucune commande"
+              description="Les commandes apparaîtront ici dès la première vente."
+            />
           )}
         </div>
       </section>

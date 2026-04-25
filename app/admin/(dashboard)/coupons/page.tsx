@@ -1,7 +1,10 @@
 import Link from "next/link"
+import { Pencil, TicketPercent } from "lucide-react"
 import { createCoupon, deleteCoupon } from "@/app/admin/actions"
 import { AdminSetupNotice } from "@/components/admin-empty-state"
 import { ConfirmDeleteForm } from "@/components/admin/confirm-delete-form"
+import { EmptyState } from "@/components/admin/empty-state"
+import { StatusBadge } from "@/components/admin/status-badge"
 import { SubmitButton } from "@/components/admin/submit-button"
 import { getAdminCoupons } from "@/lib/admin"
 
@@ -50,17 +53,20 @@ export default async function AdminCouponsPage() {
               key={coupon.id}
               className="grid gap-3 border-b border-border p-5 last:border-b-0 md:grid-cols-[1fr_auto_auto_auto_auto] md:items-center"
             >
-              <p className="font-medium">{coupon.code}</p>
+              <p className="font-mono text-sm font-medium tracking-wider">
+                {coupon.code}
+              </p>
               <p className="text-sm text-smoke">
-                {coupon.type} - {coupon.value}
+                {coupon.type === "percent"
+                  ? `${coupon.value} %`
+                  : `${coupon.value} MAD`}
               </p>
-              <p className="text-[11px] uppercase tracking-[0.18em]">
-                {coupon.is_active ? "Actif" : "Inactif"}
-              </p>
+              <StatusBadge status={coupon.is_active ? "active" : "inactive"} />
               <Link
                 href={`/admin/coupons/${coupon.id}`}
-                className="border border-border px-4 py-3 text-center text-[11px] uppercase tracking-[0.22em] hover:bg-secondary"
+                className="inline-flex items-center justify-center gap-1.5 border border-border px-4 py-3 text-[11px] uppercase tracking-[0.22em] transition-colors hover:bg-secondary"
               >
+                <Pencil className="size-3" strokeWidth={1.5} />
                 Editer
               </Link>
               <ConfirmDeleteForm
@@ -72,7 +78,11 @@ export default async function AdminCouponsPage() {
             </article>
           ))}
           {coupons.length === 0 && (
-            <p className="p-5 text-sm text-smoke">Aucun coupon.</p>
+            <EmptyState
+              icon={TicketPercent}
+              title="Aucun coupon"
+              description="Crée ton premier code promo en utilisant le formulaire à gauche."
+            />
           )}
         </div>
       </section>

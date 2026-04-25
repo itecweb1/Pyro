@@ -1,6 +1,8 @@
 import Link from "next/link"
+import { FolderOpen, Pencil } from "lucide-react"
 import { AdminSetupNotice } from "@/components/admin-empty-state"
 import { ConfirmDeleteForm } from "@/components/admin/confirm-delete-form"
+import { EmptyState } from "@/components/admin/empty-state"
 import { SubmitButton } from "@/components/admin/submit-button"
 import { createCategory, deleteCategory } from "@/app/admin/actions"
 import { getAdminCategories } from "@/lib/admin"
@@ -57,8 +59,9 @@ export default async function AdminCategoriesPage() {
               </p>
               <Link
                 href={`/admin/categories/${category.id}`}
-                className="border border-border px-4 py-3 text-center text-[11px] uppercase tracking-[0.22em] hover:bg-secondary"
+                className="inline-flex items-center justify-center gap-1.5 border border-border px-4 py-3 text-[11px] uppercase tracking-[0.22em] transition-colors hover:bg-secondary"
               >
+                <Pencil className="size-3" strokeWidth={1.5} />
                 Editer
               </Link>
               <ConfirmDeleteForm
@@ -70,7 +73,11 @@ export default async function AdminCategoriesPage() {
             </article>
           ))}
           {categories.length === 0 && (
-            <p className="p-5 text-sm text-smoke">Aucune categorie.</p>
+            <EmptyState
+              icon={FolderOpen}
+              title="Aucune catégorie"
+              description="Crée ta première catégorie en utilisant le formulaire à gauche."
+            />
           )}
         </div>
       </section>

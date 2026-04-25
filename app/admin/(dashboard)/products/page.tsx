@@ -1,6 +1,9 @@
 import Link from "next/link"
+import { Package, Pencil } from "lucide-react"
 import { AdminSetupNotice } from "@/components/admin-empty-state"
 import { ConfirmDeleteForm } from "@/components/admin/confirm-delete-form"
+import { EmptyState } from "@/components/admin/empty-state"
+import { StatusBadge } from "@/components/admin/status-badge"
 import { SubmitButton } from "@/components/admin/submit-button"
 import { createProduct, deleteProduct } from "@/app/admin/actions"
 import { getAdminCategories, getAdminProducts } from "@/lib/admin"
@@ -83,7 +86,10 @@ export default async function AdminProductsPage() {
             </thead>
             <tbody className="divide-y divide-border">
               {products.map((product) => (
-                <tr key={product.id}>
+                <tr
+                  key={product.id}
+                  className="transition-colors hover:bg-secondary/40"
+                >
                   <td className="p-4">
                     <p className="font-medium">{product.name}</p>
                     <p className="text-xs text-smoke">/{product.slug}</p>
@@ -103,16 +109,15 @@ export default async function AdminProductsPage() {
                     )}
                   </td>
                   <td className="p-4">
-                    <span className="border border-border px-2 py-1 text-[10px] uppercase tracking-[0.18em]">
-                      {product.is_active ? "Actif" : "Brouillon"}
-                    </span>
+                    <StatusBadge status={product.is_active ? "active" : "draft"} />
                   </td>
                   <td className="p-4">
                     <div className="flex items-center justify-end gap-2">
                       <Link
                         href={`/admin/products/${product.id}`}
-                        className="border border-border px-3 py-2 text-[11px] uppercase tracking-[0.22em] hover:bg-secondary"
+                        className="inline-flex items-center gap-1.5 border border-border px-3 py-2 text-[11px] uppercase tracking-[0.22em] transition-colors hover:bg-secondary"
                       >
+                        <Pencil className="size-3" strokeWidth={1.5} />
                         Editer
                       </Link>
                       <ConfirmDeleteForm
@@ -127,8 +132,12 @@ export default async function AdminProductsPage() {
               ))}
               {products.length === 0 && (
                 <tr>
-                  <td className="p-5 text-smoke" colSpan={6}>
-                    Aucun produit.
+                  <td colSpan={6}>
+                    <EmptyState
+                      icon={Package}
+                      title="Aucun produit"
+                      description="Crée ton premier produit en utilisant le formulaire à gauche."
+                    />
                   </td>
                 </tr>
               )}

@@ -1,7 +1,9 @@
 import Link from "next/link"
+import { Pencil } from "lucide-react"
 import { AdminSetupNotice } from "@/components/admin-empty-state"
 import { ConfirmDeleteForm } from "@/components/admin/confirm-delete-form"
 import { FormToast } from "@/components/admin/form-toast"
+import { StatusBadge } from "@/components/admin/status-badge"
 import { SubmitButton } from "@/components/admin/submit-button"
 import {
   createHeroBanner,
@@ -131,25 +133,26 @@ export default async function AdminSettingsPage() {
               className="grid gap-4 p-5 md:grid-cols-[1.1fr_auto_auto_auto] md:items-center"
             >
               <div>
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-center gap-3">
                   <p className="font-medium">{banner.title}</p>
-                  <span className="border border-border px-2 py-1 text-[10px] uppercase tracking-[0.18em]">
-                    {banner.is_active ? "Active" : "Inactive"}
-                  </span>
+                  <StatusBadge status={banner.is_active ? "active" : "draft"} />
                 </div>
                 <p className="mt-1 text-sm text-smoke">
-                  {banner.eyebrow || "Sans eyebrow"} · {banner.cta_href || "/shop"} · ordre{" "}
-                  {banner.sort_order}
+                  {banner.eyebrow || "Sans eyebrow"} ·{" "}
+                  {banner.cta_href || "/shop"} · ordre {banner.sort_order}
                 </p>
                 {banner.image_url && (
-                  <p className="mt-1 text-xs text-smoke">{banner.image_url}</p>
+                  <p className="mt-1 break-all font-mono text-xs text-smoke">
+                    {banner.image_url}
+                  </p>
                 )}
               </div>
 
               <Link
                 href={`/admin/settings/banners/${banner.id}`}
-                className="border border-border px-4 py-3 text-center text-[11px] uppercase tracking-[0.22em] hover:bg-secondary"
+                className="inline-flex items-center justify-center gap-1.5 border border-border px-4 py-3 text-center text-[11px] uppercase tracking-[0.22em] transition-colors hover:bg-secondary"
               >
+                <Pencil className="size-3" strokeWidth={1.5} />
                 Editer
               </Link>
 

@@ -1,7 +1,9 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { ChevronLeft } from "lucide-react"
 import { AdminSetupNotice } from "@/components/admin-empty-state"
 import { FormToast } from "@/components/admin/form-toast"
+import { StatusBadge } from "@/components/admin/status-badge"
 import { SubmitButton } from "@/components/admin/submit-button"
 import { updateOrderStatus } from "@/app/admin/actions"
 import { getAdminOrderById } from "@/lib/admin"
@@ -9,13 +11,13 @@ import { formatDate, formatPrice } from "@/lib/format"
 
 export const metadata = { title: "Detail commande" }
 
-const STATUSES = [
-  "pending",
-  "paid",
-  "shipped",
-  "delivered",
-  "cancelled",
-  "refunded",
+const STATUSES: { value: string; label: string }[] = [
+  { value: "pending", label: "En attente" },
+  { value: "paid", label: "Payé" },
+  { value: "shipped", label: "Expédié" },
+  { value: "delivered", label: "Livré" },
+  { value: "cancelled", label: "Annulé" },
+  { value: "refunded", label: "Remboursé" },
 ]
 
 export default async function AdminOrderDetailPage({
@@ -40,17 +42,22 @@ export default async function AdminOrderDetailPage({
             Commande #{order ? order.id.slice(0, 8) : "—"}.
           </h1>
           {order && (
-            <p className="mt-2 text-sm text-smoke">
-              {formatDate(order.created_at)} ·{" "}
-              {order.payment_method === "cod" ? "Paiement livraison" : "Carte"}{" "}
-              · {order.status}
-            </p>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <StatusBadge status={order.status} size="md" />
+              {order.payment_method && (
+                <StatusBadge status={order.payment_method} size="md" />
+              )}
+              <span className="text-sm text-smoke">
+                · {formatDate(order.created_at)}
+              </span>
+            </div>
           )}
         </div>
         <Link
           href="/admin/orders"
-          className="border border-border px-4 py-3 text-[11px] uppercase tracking-[0.22em] hover:bg-secondary"
+          className="inline-flex items-center gap-1.5 border border-border px-4 py-3 text-[11px] uppercase tracking-[0.22em] transition-colors hover:bg-secondary"
         >
+          <ChevronLeft className="size-3.5" strokeWidth={1.5} />
           Retour
         </Link>
       </header>
@@ -140,9 +147,9 @@ export default async function AdminOrderDetailPage({
                   defaultValue={order.status}
                   className="h-11 border border-border bg-background px-3 text-sm"
                 >
-                  {STATUSES.map((status) => (
-                    <option key={status} value={status}>
-                      {status}
+                  {STATUSES.map((s) => (
+                    <option key={s.value} value={s.value}>
+                      {s.label}
                     </option>
                   ))}
                 </select>
