@@ -2,11 +2,12 @@ import { notFound } from "next/navigation"
 import { AdminSetupNotice } from "@/components/admin-empty-state"
 import { Breadcrumbs } from "@/components/admin/breadcrumbs"
 import { ConfirmDeleteForm } from "@/components/admin/confirm-delete-form"
+import { ImageInput } from "@/components/admin/image-input"
 import { SubmitButton } from "@/components/admin/submit-button"
 import { deleteCategory, updateCategory } from "@/app/admin/actions"
 import { getAdminCategoryById } from "@/lib/admin"
 
-export const metadata = { title: "Editer categorie" }
+export const metadata = { title: "Éditer catégorie" }
 
 export default async function AdminCategoryEditPage({
   params,
@@ -42,7 +43,7 @@ export default async function AdminCategoryEditPage({
         <section className="grid gap-8 lg:grid-cols-[1fr_320px]">
           <form action={updateCategory} className="border border-border p-5 md:p-6">
             <input type="hidden" name="id" value={category.id} />
-            <h2 className="label-eyebrow">Donnees categorie</h2>
+            <h2 className="label-eyebrow">Données catégorie</h2>
             <div className="mt-6 grid gap-4">
               <Input
                 name="name"
@@ -50,30 +51,33 @@ export default async function AdminCategoryEditPage({
                 required
                 defaultValue={category.name}
               />
-              <Input name="slug" label="Slug (URL)" defaultValue={category.slug} />
-              <label className="grid gap-2">
-                <span className="label-eyebrow">Nouvelle image (fichier)</span>
-                <input
-                  name="file"
-                  type="file"
-                  accept="image/*"
-                  className="border border-border bg-background px-3 py-2 text-sm file:mr-3 file:border-0 file:bg-foreground file:px-3 file:py-1 file:text-[11px] file:uppercase file:tracking-[0.22em] file:text-background"
-                />
-              </label>
+              <Input
+                name="slug"
+                label="Slug URL"
+                defaultValue={category.slug}
+                placeholder="laisser vide pour générer depuis le nom"
+              />
+              <ImageInput
+                name="file"
+                label="Image (fichier)"
+                currentUrl={category.image_url}
+              />
               <Input
                 name="image_url"
-                label="Image URL existante"
+                label="…ou URL externe"
                 defaultValue={category.image_url ?? ""}
               />
               <Input
                 name="sort_order"
-                label="Ordre"
-                inputMode="numeric"
+                label="Ordre d'affichage"
+                type="number"
+                min="0"
+                step="1"
                 defaultValue={String(category.sort_order ?? 0)}
               />
               <Textarea
                 name="description"
-                label="Texte collection"
+                label="Texte de la collection"
                 defaultValue={category.description ?? ""}
               />
               <SubmitButton>Enregistrer</SubmitButton>

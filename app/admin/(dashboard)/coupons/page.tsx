@@ -62,17 +62,28 @@ export default async function AdminCouponsPage({
             <Input name="code" label="Code" required placeholder="PYRO10" />
             <label className="grid gap-2">
               <span className="label-eyebrow">Type</span>
-              <select name="type" className="h-11 border border-border bg-background px-3 text-sm">
-                <option value="percent">Pourcentage</option>
-                <option value="fixed">Montant fixe</option>
+              <select
+                name="type"
+                className="h-11 border border-border bg-background px-3 text-sm"
+              >
+                <option value="percent">Pourcentage (%)</option>
+                <option value="fixed">Montant fixe (MAD)</option>
               </select>
             </label>
-            <Input name="value" label="Valeur" inputMode="numeric" defaultValue="10" />
-            <Input name="starts_at" label="Debut ISO" placeholder="2026-05-01" />
-            <Input name="ends_at" label="Fin ISO" placeholder="2026-06-01" />
+            <Input
+              name="value"
+              label="Valeur"
+              type="number"
+              min="1"
+              step="1"
+              defaultValue="10"
+              required
+            />
+            <Input name="starts_at" label="Date de début" type="date" />
+            <Input name="ends_at" label="Date de fin" type="date" />
             <label className="flex items-center gap-2 text-sm">
               <input name="is_active" type="checkbox" defaultChecked />
-              Actif
+              Actif dès la création
             </label>
             <SubmitButton pendingLabel="Création…">Créer le coupon</SubmitButton>
           </div>

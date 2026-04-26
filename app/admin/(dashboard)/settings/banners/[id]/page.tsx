@@ -2,12 +2,13 @@ import { notFound } from "next/navigation"
 import { AdminSetupNotice } from "@/components/admin-empty-state"
 import { Breadcrumbs } from "@/components/admin/breadcrumbs"
 import { ConfirmDeleteForm } from "@/components/admin/confirm-delete-form"
+import { ImageInput } from "@/components/admin/image-input"
 import { StatusBadge } from "@/components/admin/status-badge"
 import { SubmitButton } from "@/components/admin/submit-button"
 import { deleteHeroBanner, updateHeroBanner } from "@/app/admin/actions"
 import { getAdminHeroBannerById } from "@/lib/admin"
 
-export const metadata = { title: "Editer hero banner" }
+export const metadata = { title: "Éditer bannière" }
 
 export default async function AdminHeroBannerEditPage({
   params,
@@ -49,7 +50,7 @@ export default async function AdminHeroBannerEditPage({
             className="border border-border p-5 md:p-6"
           >
             <input type="hidden" name="id" value={banner.id} />
-            <h2 className="label-eyebrow">Donnees banniere</h2>
+            <h2 className="label-eyebrow">Données bannière</h2>
             <div className="mt-6 grid gap-4">
               <Input
                 name="title"
@@ -64,39 +65,37 @@ export default async function AdminHeroBannerEditPage({
               />
               <Input
                 name="eyebrow"
-                label="Eyebrow"
+                label="Eyebrow (suréclairage)"
                 defaultValue={banner.eyebrow ?? ""}
               />
               <div className="grid gap-4 md:grid-cols-2">
                 <Input
                   name="cta_label"
-                  label="CTA label"
+                  label="Texte du bouton CTA"
                   defaultValue={banner.cta_label ?? ""}
                 />
                 <Input
                   name="cta_href"
-                  label="CTA href"
+                  label="Lien du CTA"
                   defaultValue={banner.cta_href ?? ""}
                 />
               </div>
-              <label className="grid gap-2">
-                <span className="label-eyebrow">Nouvelle image (fichier)</span>
-                <input
-                  name="file"
-                  type="file"
-                  accept="image/*"
-                  className="border border-border bg-background px-3 py-2 text-sm file:mr-3 file:border-0 file:bg-foreground file:px-3 file:py-1 file:text-[11px] file:uppercase file:tracking-[0.22em] file:text-background"
-                />
-              </label>
+              <ImageInput
+                name="file"
+                label="Image (fichier)"
+                currentUrl={banner.image_url}
+              />
               <Input
                 name="image_url"
-                label="Image URL existante"
+                label="…ou URL externe"
                 defaultValue={banner.image_url ?? ""}
               />
               <Input
                 name="sort_order"
-                label="Ordre"
-                inputMode="numeric"
+                label="Ordre d'affichage"
+                type="number"
+                min="0"
+                step="1"
                 defaultValue={String(banner.sort_order ?? 0)}
               />
               <label className="flex items-center gap-2 text-sm">
@@ -105,24 +104,13 @@ export default async function AdminHeroBannerEditPage({
                   type="checkbox"
                   defaultChecked={banner.is_active}
                 />
-                Active
+                Bannière active sur la homepage
               </label>
               <SubmitButton>Enregistrer</SubmitButton>
             </div>
           </form>
 
           <aside className="space-y-4">
-            {banner.image_url && (
-              <div className="border border-border p-5">
-                <p className="label-eyebrow">Image actuelle</p>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={banner.image_url}
-                  alt={banner.title}
-                  className="mt-3 w-full border border-border object-cover"
-                />
-              </div>
-            )}
             <div className="border border-border p-5">
               <p className="label-eyebrow">Zone dangereuse</p>
               <p className="mt-3 mb-4 text-sm text-smoke">

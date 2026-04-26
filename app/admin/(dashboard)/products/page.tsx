@@ -63,19 +63,32 @@ export default async function AdminProductsPage({
 
       <section className="grid gap-8 xl:grid-cols-[0.95fr_1.4fr]">
         <form action={createProduct} className="border border-border p-5 md:p-6">
-          <h2 className="label-eyebrow">Creer une piece</h2>
+          <h2 className="label-eyebrow">Créer une pièce</h2>
           <div className="mt-6 grid gap-4">
-            <Input name="name" label="Nom produit" required />
+            <Input name="name" label="Nom du produit" required />
             <Input name="subtitle" label="Sous-titre" />
-            <Input name="price" label="Prix MAD" inputMode="decimal" required />
-            <Input name="compare_at" label="Ancien prix MAD" inputMode="decimal" />
+            <Input
+              name="price"
+              label="Prix MAD"
+              type="number"
+              min="0"
+              step="0.01"
+              required
+            />
+            <Input
+              name="compare_at"
+              label="Ancien prix MAD (barré)"
+              type="number"
+              min="0"
+              step="0.01"
+            />
             <label className="grid gap-2">
-              <span className="label-eyebrow">Categorie</span>
+              <span className="label-eyebrow">Catégorie</span>
               <select
                 name="category_id"
                 className="h-11 border border-border bg-background px-3 text-sm"
               >
-                <option value="">Sans categorie</option>
+                <option value="">Sans catégorie</option>
                 {categories.map((category) => (
                   <option key={category.id} value={category.id}>
                     {category.name}
@@ -83,21 +96,36 @@ export default async function AdminProductsPage({
                 ))}
               </select>
             </label>
-            <Input name="image_url" label="Image principale URL" />
-            <Input name="sizes" label="Tailles" defaultValue="S,M,L,XL" />
+            <Input
+              name="image_url"
+              label="Image principale (URL)"
+              placeholder="https://…"
+            />
+            <Input
+              name="sizes"
+              label="Tailles (séparées par virgule)"
+              defaultValue="S,M,L,XL"
+            />
             <Input name="color" label="Couleur" defaultValue="Noir graphite" />
-            <Input name="stock" label="Stock par taille" inputMode="numeric" defaultValue="12" />
+            <Input
+              name="stock"
+              label="Stock initial par taille"
+              type="number"
+              min="0"
+              step="1"
+              defaultValue="12"
+            />
             <Textarea name="description" label="Description" />
-            <Textarea name="materials" label="Matieres" />
+            <Textarea name="materials" label="Matières" />
             <Textarea name="care" label="Entretien" />
             <div className="grid gap-2 text-sm">
               <label className="flex items-center gap-2">
                 <input name="is_active" type="checkbox" defaultChecked />
-                Actif
+                Actif (visible sur la boutique)
               </label>
               <label className="flex items-center gap-2">
                 <input name="is_featured" type="checkbox" />
-                Best seller / mise en avant
+                Mis en avant en homepage
               </label>
             </div>
             <SubmitButton pendingLabel="Création…">Créer le produit</SubmitButton>

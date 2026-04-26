@@ -3,6 +3,7 @@ import { AdminSetupNotice } from "@/components/admin-empty-state"
 import { Breadcrumbs } from "@/components/admin/breadcrumbs"
 import { ConfirmDeleteForm } from "@/components/admin/confirm-delete-form"
 import { FormToast } from "@/components/admin/form-toast"
+import { ImageInput } from "@/components/admin/image-input"
 import { StatusBadge } from "@/components/admin/status-badge"
 import { SubmitButton } from "@/components/admin/submit-button"
 import {
@@ -69,7 +70,7 @@ export default async function AdminProductEditPage({
               className="border border-border p-5 md:p-6"
             >
               <input type="hidden" name="id" value={product.id} />
-              <h2 className="label-eyebrow">Donnees produit</h2>
+              <h2 className="label-eyebrow">Données produit</h2>
               <div className="mt-6 grid gap-4">
                 <Input
                   name="name"
@@ -79,8 +80,9 @@ export default async function AdminProductEditPage({
                 />
                 <Input
                   name="slug"
-                  label="Slug (URL)"
+                  label="Slug URL"
                   defaultValue={product.slug}
+                  placeholder="laisser vide pour générer depuis le nom"
                 />
                 <Input
                   name="subtitle"
@@ -91,14 +93,18 @@ export default async function AdminProductEditPage({
                   <Input
                     name="price"
                     label="Prix MAD"
-                    inputMode="decimal"
+                    type="number"
+                    min="0"
+                    step="0.01"
                     required
                     defaultValue={(product.price_cents / 100).toString()}
                   />
                   <Input
                     name="compare_at"
-                    label="Ancien prix MAD"
-                    inputMode="decimal"
+                    label="Ancien prix MAD (barré)"
+                    type="number"
+                    min="0"
+                    step="0.01"
                     defaultValue={
                       product.compare_at_cents != null
                         ? (product.compare_at_cents / 100).toString()
@@ -107,13 +113,13 @@ export default async function AdminProductEditPage({
                   />
                 </div>
                 <label className="grid gap-2">
-                  <span className="label-eyebrow">Categorie</span>
+                  <span className="label-eyebrow">Catégorie</span>
                   <select
                     name="category_id"
                     defaultValue={product.category_id ?? ""}
                     className="h-11 border border-border bg-background px-3 text-sm"
                   >
-                    <option value="">Sans categorie</option>
+                    <option value="">Sans catégorie</option>
                     {categories.map((category) => (
                       <option key={category.id} value={category.id}>
                         {category.name}
@@ -128,7 +134,7 @@ export default async function AdminProductEditPage({
                 />
                 <Textarea
                   name="materials"
-                  label="Matieres"
+                  label="Matières"
                   defaultValue={product.materials ?? ""}
                 />
                 <Textarea
@@ -143,7 +149,7 @@ export default async function AdminProductEditPage({
                       type="checkbox"
                       defaultChecked={product.is_active}
                     />
-                    Actif
+                    Actif (visible sur la boutique)
                   </label>
                   <label className="flex items-center gap-2">
                     <input
@@ -151,7 +157,7 @@ export default async function AdminProductEditPage({
                       type="checkbox"
                       defaultChecked={product.is_featured}
                     />
-                    Best seller / mise en avant
+                    Mis en avant en homepage
                   </label>
                 </div>
                 <SubmitButton>Enregistrer</SubmitButton>
@@ -231,31 +237,30 @@ export default async function AdminProductEditPage({
               className="grid gap-4 border-t border-border p-5"
             >
               <input type="hidden" name="product_id" value={product.id} />
-              <div className="grid gap-4 md:grid-cols-[1fr_220px_120px]">
-                <label className="grid gap-2">
-                  <span className="label-eyebrow">Fichier</span>
-                  <input
-                    name="file"
-                    type="file"
-                    accept="image/*"
-                    className="border border-border bg-background px-3 py-2 text-sm file:mr-3 file:border-0 file:bg-foreground file:px-3 file:py-1 file:text-[11px] file:uppercase file:tracking-[0.22em] file:text-background"
-                  />
-                </label>
-                <Input name="alt" label="Alt" defaultValue={product.name} />
+              <div className="grid gap-4 md:grid-cols-[1fr_220px_140px]">
+                <ImageInput name="file" label="Fichier" />
+                <Input
+                  name="alt"
+                  label="Texte alternatif"
+                  defaultValue={product.name}
+                  placeholder="Pour l'accessibilité"
+                />
                 <Input
                   name="sort_order"
-                  label="Ordre"
-                  inputMode="numeric"
+                  label="Ordre d'affichage"
+                  type="number"
+                  min="0"
+                  step="1"
                   defaultValue={String(product.images.length)}
                 />
               </div>
               <Input
                 name="url"
-                label="ou coller une URL externe"
-                placeholder="https://..."
+                label="…ou coller une URL externe"
+                placeholder="https://…"
               />
               <div className="justify-self-start">
-                <SubmitButton pendingLabel="Ajout…">Ajouter</SubmitButton>
+                <SubmitButton pendingLabel="Ajout…">Ajouter l&apos;image</SubmitButton>
               </div>
             </form>
           </section>
@@ -332,11 +337,17 @@ export default async function AdminProductEditPage({
                 label="Couleur"
                 placeholder="Noir graphite"
               />
-              <Input name="sku" label="SKU (auto si vide)" />
+              <Input
+                name="sku"
+                label="SKU"
+                placeholder="auto si vide"
+              />
               <Input
                 name="stock"
                 label="Stock"
-                inputMode="numeric"
+                type="number"
+                min="0"
+                step="1"
                 defaultValue="0"
               />
               <SubmitButton pendingLabel="Ajout…">Ajouter</SubmitButton>

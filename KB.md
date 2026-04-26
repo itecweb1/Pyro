@@ -190,6 +190,7 @@ Shared admin UI primitives. Always reuse these instead of one-off classes.
 | `<Pagination>` (Sprint D) | Server-rendered prev / next + "X–Y of N" counter | every list page |
 | `<SortableHeader>` (Sprint D) | Clickable `<th>` toggling `?sort` + `?dir` with arrow indicator | sortable table columns |
 | `<StatusFilterChips>` (Sprint D) | Pill chips for the `?status` URL param, with counts | `/admin/orders` |
+| `<ImageInput>` (Sprint E) | File picker with live blob preview, fallback to `currentUrl`, file size + clear button | every form with an image upload |
 
 ### List page URL params (Sprint D)
 Every admin list page uses URL params as the source of truth so links/back-button work:
@@ -220,7 +221,7 @@ Wrappers (`<ConfirmDeleteForm>`, `<FormToast>`) read this and produce the right 
 ### Tables
 Headers in `text-[11px] uppercase tracking-[0.18em] text-smoke`. Sprint B added `transition-colors hover:bg-secondary/40` on rows. Numeric columns must use `tabular-nums`. Pagination + sticky header + sortable columns are Sprint D.
 
-### Forms (post Sprint A + C)
+### Forms (post Sprint A / C / E)
 - Inputs: 9 admin pages still have inline `Input` / `Textarea` helpers. Pattern (post-Sprint C):
   ```
   h-11 border border-border bg-background px-3 text-sm outline-none transition-colors
@@ -228,7 +229,17 @@ Headers in `text-[11px] uppercase tracking-[0.18em] text-smoke`. Sprint B added 
   focus-visible:ring-offset-1 focus-visible:ring-offset-background
   ```
 - Labels styled with `.label-eyebrow`, wrapped around input.
-- Sprint E will consolidate these helpers into a shared `<Input>` / `<Textarea>` and standardize button verbs (`Créer …` / `Enregistrer` / `Ajouter` / `Supprimer`).
+- **Numeric inputs** (Sprint E) must use `type="number"` with `min`/`step`:
+  - prices: `min="0" step="0.01"`
+  - stock / sort_order / coupon value: `min="0" step="1"`
+- **Date inputs** (Sprint E) must use `type="date"` (not text + placeholder).
+- **Image inputs** (Sprint E) must use `<ImageInput>` (don't roll a raw `<input type="file">`).
+- **Verbs** (Sprint E):
+  - `Créer …` for inserting a new entity
+  - `Enregistrer` for updating an existing entity
+  - `Ajouter` for appending to a list (image, variant)
+  - `Supprimer` for destroy (lives inside `<ConfirmDeleteForm>`)
+  - Avoid `Sauvegarder` / `Modifier` (mixed terminology).
 
 ---
 

@@ -3,6 +3,7 @@ import { FolderOpen, Pencil } from "lucide-react"
 import { AdminSetupNotice } from "@/components/admin-empty-state"
 import { ConfirmDeleteForm } from "@/components/admin/confirm-delete-form"
 import { EmptyState } from "@/components/admin/empty-state"
+import { ImageInput } from "@/components/admin/image-input"
 import { SubmitButton } from "@/components/admin/submit-button"
 import { createCategory, deleteCategory } from "@/app/admin/actions"
 import { getAdminCategories } from "@/lib/admin"
@@ -18,29 +19,32 @@ export default async function AdminCategoriesPage() {
       <header>
         <p className="label-eyebrow">Merchandising</p>
         <h1 className="mt-3 font-serif text-[44px] leading-none tracking-tight md:text-[64px]">
-          Categories.
+          Catégories.
         </h1>
       </header>
       {!configured && <AdminSetupNotice />}
 
       <section className="grid gap-8 lg:grid-cols-[420px_1fr]">
         <form action={createCategory} className="border border-border p-6">
-          <h2 className="label-eyebrow">Nouvelle categorie</h2>
+          <h2 className="label-eyebrow">Nouvelle catégorie</h2>
           <div className="mt-6 grid gap-4">
             <Input name="name" label="Nom" required />
-            <Input name="sort_order" label="Ordre" inputMode="numeric" defaultValue="0" />
-            <label className="grid gap-2">
-              <span className="label-eyebrow">Image (fichier)</span>
-              <input
-                name="file"
-                type="file"
-                accept="image/*"
-                className="border border-border bg-background px-3 py-2 text-sm file:mr-3 file:border-0 file:bg-foreground file:px-3 file:py-1 file:text-[11px] file:uppercase file:tracking-[0.22em] file:text-background"
-              />
-            </label>
-            <Input name="image_url" label="ou URL externe" placeholder="https://..." />
-            <Textarea name="description" label="Texte collection" />
-            <SubmitButton pendingLabel="Création…">Créer</SubmitButton>
+            <Input
+              name="sort_order"
+              label="Ordre d'affichage"
+              type="number"
+              min="0"
+              step="1"
+              defaultValue="0"
+            />
+            <ImageInput name="file" label="Image (fichier)" />
+            <Input
+              name="image_url"
+              label="…ou URL externe"
+              placeholder="https://…"
+            />
+            <Textarea name="description" label="Texte de la collection" />
+            <SubmitButton pendingLabel="Création…">Créer la catégorie</SubmitButton>
           </div>
         </form>
 

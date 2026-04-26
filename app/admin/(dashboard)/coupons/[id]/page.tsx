@@ -49,7 +49,7 @@ export default async function AdminCouponEditPage({
         <section className="grid gap-8 lg:grid-cols-[1fr_320px]">
           <form action={updateCoupon} className="border border-border p-5 md:p-6">
             <input type="hidden" name="id" value={coupon.id} />
-            <h2 className="label-eyebrow">Donnees coupon</h2>
+            <h2 className="label-eyebrow">Données coupon</h2>
             <div className="mt-6 grid gap-4">
               <Input
                 name="code"
@@ -64,25 +64,28 @@ export default async function AdminCouponEditPage({
                   defaultValue={coupon.type}
                   className="h-11 border border-border bg-background px-3 text-sm"
                 >
-                  <option value="percent">Pourcentage</option>
-                  <option value="fixed">Montant fixe</option>
+                  <option value="percent">Pourcentage (%)</option>
+                  <option value="fixed">Montant fixe (MAD)</option>
                 </select>
               </label>
               <Input
                 name="value"
                 label="Valeur"
-                inputMode="numeric"
+                type="number"
+                min="1"
+                step="1"
                 defaultValue={String(coupon.value)}
+                required
               />
               <Input
                 name="starts_at"
-                label="Debut (YYYY-MM-DD)"
+                label="Date de début"
                 type="date"
                 defaultValue={toDateInputValue(coupon.starts_at)}
               />
               <Input
                 name="ends_at"
-                label="Fin (YYYY-MM-DD)"
+                label="Date de fin"
                 type="date"
                 defaultValue={toDateInputValue(coupon.ends_at)}
               />

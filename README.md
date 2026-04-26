@@ -129,7 +129,8 @@ Le storefront public et le back office sont fonctionnels. La phase admin UX est 
 - ✅ UX Sprint B (système visuel) — tokens sémantiques, badges statut, composants Button/Card/EmptyState/KpiCard.
 - ✅ UX Sprint C (orientation) — nav active, fil d'Ariane, 404 personnalisé, focus rings.
 - ✅ UX Sprint D (ergonomie listes) — recherche, tri, pagination, filtres statut sur `/admin/orders`.
-- ⏳ Sprints E–G à venir (formulaires, mobile, densité).
+- ✅ UX Sprint E (formulaires & microcopie) — preview d'image, types de champs, accents et verbes cohérents.
+- ⏳ Sprints F–G à venir (mobile, densité).
 - ❌ Webhook Stripe (P0) — les paiements carte n'enregistrent pas encore d'ordres en base.
 
 Voir [`PLAN.md`](./PLAN.md) pour la liste priorisée et [`KB.md`](./KB.md) pour le système de design + conventions.

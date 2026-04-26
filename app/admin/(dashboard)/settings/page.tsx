@@ -3,6 +3,7 @@ import { Pencil } from "lucide-react"
 import { AdminSetupNotice } from "@/components/admin-empty-state"
 import { ConfirmDeleteForm } from "@/components/admin/confirm-delete-form"
 import { FormToast } from "@/components/admin/form-toast"
+import { ImageInput } from "@/components/admin/image-input"
 import { StatusBadge } from "@/components/admin/status-badge"
 import { SubmitButton } from "@/components/admin/submit-button"
 import {
@@ -33,7 +34,7 @@ export default async function AdminSettingsPage() {
       <header>
         <p className="label-eyebrow">Configuration</p>
         <h1 className="mt-3 font-serif text-[44px] leading-none tracking-tight md:text-[64px]">
-          Parametres.
+          Paramètres.
         </h1>
       </header>
 
@@ -43,28 +44,40 @@ export default async function AdminSettingsPage() {
         <form action={updateBrandSettings} className="border border-border p-5 md:p-6">
           <h2 className="label-eyebrow">Plateforme de marque</h2>
           <div className="mt-6 grid gap-4">
-            <Input name="name" label="Nom marque" defaultValue={brandSettings.name} />
-            <Input name="slogan" label="Slogan" defaultValue={brandSettings.slogan} />
+            <Input
+              name="name"
+              label="Nom de la marque"
+              defaultValue={brandSettings.name}
+            />
+            <Input
+              name="slogan"
+              label="Slogan"
+              defaultValue={brandSettings.slogan}
+            />
             <Textarea
               name="description"
-              label="Description marque"
+              label="Description de la marque"
               defaultValue={brandSettings.description}
             />
             <Input
               name="shipping_threshold"
               label="Seuil livraison offerte (MAD)"
-              inputMode="decimal"
+              type="number"
+              min="0"
+              step="0.01"
               defaultValue={(brandSettings.shipping_threshold_cents / 100).toString()}
             />
             <Input
               name="shipping_fee"
               label="Frais de livraison standard (MAD)"
-              inputMode="decimal"
+              type="number"
+              min="0"
+              step="0.01"
               defaultValue={(brandSettings.shipping_fee_cents / 100).toString()}
             />
             <Textarea
               name="announcement_items"
-              label="Messages announcement bar (1 ligne = 1 message)"
+              label="Messages de la barre d'annonce (1 ligne = 1 message)"
               defaultValue={brandSettings.announcement_items.join("\n")}
               rows={5}
             />
@@ -89,33 +102,44 @@ export default async function AdminSettingsPage() {
         </form>
 
         <form action={createHeroBanner} className="border border-border p-5 md:p-6">
-          <h2 className="label-eyebrow">Nouvelle hero banner</h2>
+          <h2 className="label-eyebrow">Nouvelle bannière hero</h2>
           <div className="mt-6 grid gap-4">
-            <Input name="title" label="Titre hero" required />
-            <Textarea name="subtitle" label="Sous-titre hero" />
-            <Input name="eyebrow" label="Eyebrow" defaultValue="Drop 05 - Capsule active" />
+            <Input name="title" label="Titre" required />
+            <Textarea name="subtitle" label="Sous-titre" />
+            <Input
+              name="eyebrow"
+              label="Eyebrow (suréclairage)"
+              defaultValue="Drop 05 — Capsule active"
+            />
             <div className="grid gap-4 md:grid-cols-2">
-              <Input name="cta_label" label="CTA label" defaultValue="Voir le drop" />
-              <Input name="cta_href" label="CTA href" defaultValue="/shop" />
-            </div>
-            <label className="grid gap-2">
-              <span className="label-eyebrow">Image (fichier)</span>
-              <input
-                name="file"
-                type="file"
-                accept="image/*"
-                className="border border-border bg-background px-3 py-2 text-sm file:mr-3 file:border-0 file:bg-foreground file:px-3 file:py-1 file:text-[11px] file:uppercase file:tracking-[0.22em] file:text-background"
+              <Input
+                name="cta_label"
+                label="Texte du bouton CTA"
+                defaultValue="Voir le drop"
               />
-            </label>
+              <Input
+                name="cta_href"
+                label="Lien du CTA"
+                defaultValue="/shop"
+              />
+            </div>
+            <ImageInput name="file" label="Image (fichier)" />
             <Input
               name="image_url"
-              label="ou URL externe"
+              label="…ou URL externe"
               defaultValue="/products/hero-main.jpg"
             />
-            <Input name="sort_order" label="Ordre" inputMode="numeric" defaultValue="1" />
+            <Input
+              name="sort_order"
+              label="Ordre d'affichage"
+              type="number"
+              min="0"
+              step="1"
+              defaultValue="1"
+            />
             <label className="flex items-center gap-2 text-sm">
               <input name="is_active" type="checkbox" defaultChecked />
-              Activer cette banniere
+              Activer cette bannière dès la création
             </label>
             <SubmitButton pendingLabel="Ajout…">Ajouter la bannière</SubmitButton>
           </div>
@@ -124,7 +148,7 @@ export default async function AdminSettingsPage() {
 
       <section className="border border-border">
         <div className="border-b border-border p-5">
-          <h2 className="label-eyebrow">Bannieres homepage</h2>
+          <h2 className="label-eyebrow">Bannières homepage</h2>
         </div>
         <div className="divide-y divide-border">
           {heroBanners.map((banner) => (

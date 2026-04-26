@@ -142,6 +142,10 @@ export default async function AdminCustomerDetailPage({
                     <option value="customer">Client</option>
                     <option value="admin">Admin</option>
                   </select>
+                  <span className="text-xs text-smoke">
+                    Les admins ont accès complet au back office (produits,
+                    commandes, paramètres). À utiliser avec parcimonie.
+                  </span>
                 </label>
                 <SubmitButton>Enregistrer</SubmitButton>
               </div>
